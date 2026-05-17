@@ -83,6 +83,9 @@ select = [
 ignore = [
     "S101",       # use of assert (ok in tests)
     "PLR0913",    # too many arguments
+    "TC001",      # type-checking-only imports — noisy with dataclasses
+    "TC002",
+    "TC003",
 ]
 
 [tool.ruff.lint.per-file-ignores]
