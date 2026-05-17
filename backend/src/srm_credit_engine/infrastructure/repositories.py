@@ -43,6 +43,10 @@ class SqlAlchemyAssignorRepository:
         row = (await self._session.execute(stmt)).scalar_one_or_none()
         return mappers.to_assignor(row) if row is not None else None
 
+    async def get_id_by_document(self, document: str) -> UUID | None:
+        stmt = select(AssignorORM.id).where(AssignorORM.document == document)
+        return (await self._session.execute(stmt)).scalar_one_or_none()
+
     async def add(self, assignor: Assignor) -> UUID:
         row = AssignorORM(document=assignor.document, legal_name=assignor.legal_name)
         self._session.add(row)

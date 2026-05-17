@@ -42,3 +42,18 @@ class AlreadySettledError(DomainError):
 class ReceivableNotFoundError(DomainError):
     code = "RECEIVABLE_NOT_FOUND"
     http_status = 404
+
+
+class AssignorNotFoundError(DomainError):
+    code = "ASSIGNOR_NOT_FOUND"
+    http_status = 404
+
+
+class ProductTypeNotFoundError(DomainError):
+    code = "PRODUCT_TYPE_NOT_FOUND"
+    http_status = 404
+
+
+class SettlementNotFoundError(DomainError):
+    code = "SETTLEMENT_NOT_FOUND"
+    http_status = 404
