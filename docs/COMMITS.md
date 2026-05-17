@@ -21,3 +21,11 @@ Tipos: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`
 - `feat(db): create initial schema with currencies, products, receivables, settlements`
 - `docs: add PR-002 description`
 - `Merge PR #2: data model (ER + DDL)`
+
+### Etapa 2 — Backend Bootstrap (`feat/backend-bootstrap` → `main`)
+- `chore(backend): scaffold python project with uv, ruff, mypy strict, pytest`
+- `feat(api): add FastAPI app skeleton with settings and healthcheck`
+- `feat(domain): add Money value object and DomainError hierarchy`
+- `test(domain): cover Money invariants and decimal safety`
+- `docs: add PR-003 description`
+- `Merge PR #3: backend bootstrap (Python + FastAPI scaffolding)`
