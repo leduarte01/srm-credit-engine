@@ -17,8 +17,6 @@ from srm_credit_engine.domain.exceptions import ExchangeRateNotFoundError
 
 router = APIRouter(prefix="/fx-rates", tags=["fx-rates"])
 
-_AT_QUERY = Query(default=None, description="Moment in time (UTC). Defaults to now.")
-
 
 @router.post(
     "",
@@ -51,7 +49,7 @@ async def get_active_rate(
     base_currency: str,
     quote_currency: str,
     repo: ExchangeRateRepoDep,
-    at: datetime | None = _AT_QUERY,
+    at: datetime | None = Query(default=None, description="Moment in time (UTC). Defaults to now."),  # noqa: B008
 ) -> ExchangeRateResponse:
     moment = at or datetime.now(UTC)
     rate = await repo.get_active(base_currency.upper(), quote_currency.upper(), moment)

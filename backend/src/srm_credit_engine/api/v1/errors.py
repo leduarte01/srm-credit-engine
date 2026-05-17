@@ -13,6 +13,7 @@ from __future__ import annotations
 import logging
 
 from fastapi import FastAPI, Request, status
+from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import NoResultFound
@@ -49,7 +50,7 @@ async def validation_handler(_: Request, exc: RequestValidationError) -> JSONRes
         content={
             "code": "REQUEST_VALIDATION",
             "message": "Request payload failed validation.",
-            "details": exc.errors(),
+            "details": jsonable_encoder(exc.errors()),
         },
     )
 

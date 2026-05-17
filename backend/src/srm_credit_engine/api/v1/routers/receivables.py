@@ -20,11 +20,6 @@ from srm_credit_engine.domain.value_objects.money import Money
 
 router = APIRouter(prefix="/receivables", tags=["receivables"])
 
-_NULL_STR = Query(default=None)
-_STATUS_QUERY = Query(default=None, alias="status")
-_CURRENCY_QUERY = Query(default=None, min_length=3, max_length=3)
-_DATE_QUERY = Query(default=None)
-
 
 @router.post(
     "",
@@ -74,12 +69,12 @@ async def get_receivable(receivable_id: UUID, repo: ReceivableRepoDep) -> Receiv
 )
 async def list_receivables(
     repo: ReceivableRepoDep,
-    assignor_document: str | None = _NULL_STR,
-    product_code: str | None = _NULL_STR,
-    receivable_status: ReceivableStatus | None = _STATUS_QUERY,
-    currency: str | None = _CURRENCY_QUERY,
-    due_from: date | None = _DATE_QUERY,
-    due_to: date | None = _DATE_QUERY,
+    assignor_document: str | None = Query(default=None),
+    product_code: str | None = Query(default=None),
+    receivable_status: ReceivableStatus | None = Query(default=None, alias="status"),  # noqa: B008
+    currency: str | None = Query(default=None, min_length=3, max_length=3),
+    due_from: date | None = Query(default=None),  # noqa: B008
+    due_to: date | None = Query(default=None),  # noqa: B008
     offset: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=200),
 ) -> PageResponse[ReceivableResponse]:
