@@ -30,11 +30,11 @@
 
 | # | Etapa | Branch | Status |
 |---|---|---|---|
-| 0 | Bootstrap | `chore/bootstrap` | 🟡 em andamento |
-| 1 | Modelagem de dados (ER + DDL) | `feat/data-model` | ⏳ |
-| 2 | Backend — esqueleto + config + Money/exceptions | `feat/backend-bootstrap` | ⏳ |
-| 3 | Domínio: entidades + Strategy Pattern + Currency Engine | `feat/domain-pricing` | ⏳ |
-| 4 | Infra: SQLAlchemy + repositórios + Alembic | `feat/infrastructure` | ⏳ |
+| 0 | Bootstrap | `chore/bootstrap` | ✅ |
+| 1 | Modelagem de dados (ER + DDL) | `feat/data-model` | ✅ |
+| 2 | Backend — esqueleto + config + Money/exceptions | `feat/backend-bootstrap` | ✅ |
+| 3 | Domínio: entidades + Strategy Pattern + Currency Engine | `feat/domain-pricing` | ✅ |
+| 4 | Infra: SQLAlchemy + repositórios + Alembic | `feat/infrastructure` | ✅ |
 | 5 | Aplicação: API REST + Swagger + exception handler + validações | `feat/api-rest` | ⏳ |
 | 6 | Extrato analítico com SQL nativo | `feat/analytical-report` | ⏳ |
 | 7 | Testes unitários (Strategy + invariantes + property-based) | `test/unit-coverage` | ⏳ |
@@ -43,6 +43,6 @@
 | 10 | Frontend (Painel do Operador + Grid de Transações) | `feat/frontend` | ⏳ |
 | 11 | Docker Compose (stack completa) | `build/docker` | ⏳ |
 | 12 | CI/CD + Pre-commit hooks | `ci/github-actions` | ⏳ |
-| 13 | ADRs + C4 + High-Scale + EDA + Crisis Mgmt + Acceptance Criteria | `docs/senior-deliverables` | ⏳ |
+| 13 | ADRs + C4 + High-Scale + EDA + Crisis Mgmt + Acceptance Criteria | `docs/architecture` | ⏳ |
 | 14 | README final + AI_USAGE | `docs/readme-final` | ⏳ |
 | 15 | Tag `v1.0.0` + simulação de hotfix (`git revert` / `cherry-pick`) | `release/v1.0.0` | ⏳ |

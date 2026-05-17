@@ -14,7 +14,7 @@
 - Adiciona `docs/COMMITS.md` (histórico vivo)
 
 ## Por que
-Estabelece base de governança do repositório (commits atômicos, padronização de formatação, line endings consistentes) antes de qualquer código. Atende requisito Júnior (estrutura organizada) e Pleno (preparação para CI/Husky/pre-commit).
+Estabelece a base de governança do repositório (commits atômicos, padronização de formatação, line endings consistentes via `.editorconfig` e `.gitattributes`) antes de qualquer código de aplicação. Garante que toda contribuição posterior nasça sobre um terreno reprodutível e pronto para hooks de pre-commit e pipeline de CI.
 
 ## Checklist
 - [x] Conventional Commits aplicados

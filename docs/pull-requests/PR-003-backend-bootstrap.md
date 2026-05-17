@@ -22,7 +22,7 @@
 - **Settings cacheado** com `@lru_cache`: leitura única do `.env`
 
 ## Checklist
-- [x] Estrutura 3 camadas (req. 3.6 do case)
+- [x] Arquitetura em 3 camadas (`api` / `domain` / `infrastructure`)
 - [x] Tipagem forte (mypy --strict)
 - [x] Linter de segurança (Ruff S rules)
 - [x] Healthcheck para Docker/K8s
