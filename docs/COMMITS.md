@@ -65,3 +65,10 @@ Tipos: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`
 - `test(api): cover happy paths and error mapping for v1 endpoints`
 - `docs: add PR-007 description and log etapa 5`
 - `Merge PR #7: REST API v1 (FastAPI routers + OpenAPI + integration tests)`
+
+### Etapa 6 — Extrato analítico com SQL nativo (`feat/analytical-report` → `main`)
+- `feat(domain): add analytics port, DTOs and portable raw SQL queries`
+- `feat(api): expose v1 reports endpoints backed by raw SQL analytics`
+- `test(api): cover analytics reports endpoints end-to-end`
+- `docs: add PR-008 description and log etapa 6`
+- `Merge PR #8: analytical reports (/v1/reports with raw SQL)`
