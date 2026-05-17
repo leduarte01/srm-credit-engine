@@ -1,0 +1,62 @@
+"""Pricing simulation endpoint — pure, no persistence."""
+
+from __future__ import annotations
+
+from datetime import UTC, datetime
+from uuid import uuid4
+
+from fastapi import APIRouter
+
+from srm_credit_engine.api.v1.deps import PricingServiceDep, ProductTypeRepoDep
+from srm_credit_engine.api.v1.schemas.common import ErrorResponse, MoneySchema
+from srm_credit_engine.api.v1.schemas.pricing import (
+    PricingSimulateRequest,
+    PricingSimulateResponse,
+)
+from srm_credit_engine.domain.entities.receivable import Receivable
+from srm_credit_engine.domain.exceptions import ProductTypeNotFoundError
+from srm_credit_engine.domain.value_objects.money import Money
+
+router = APIRouter(prefix="/pricing", tags=["pricing"])
+
+
+@router.post(
+    "/simulate",
+    response_model=PricingSimulateResponse,
+    responses={404: {"model": ErrorResponse}, 422: {"model": ErrorResponse}},
+    summary="Simulate the discounted value of a hypothetical receivable.",
+)
+async def simulate(
+    payload: PricingSimulateRequest,
+    products: ProductTypeRepoDep,
+    pricing: PricingServiceDep,
+) -> PricingSimulateResponse:
+    product = await products.get_by_code(payload.product_code)
+    if product is None:
+        raise ProductTypeNotFoundError(f"Product type {payload.product_code} not found.")
+
+    # Build a transient receivable just for the calculation.
+    receivable = Receivable(
+        id=uuid4(),
+        assignor_document="0" * 14,
+        product_code=payload.product_code,
+        face_value=Money(payload.face_value.amount, payload.face_value.currency.upper()),
+        issue_date=payload.issue_date,
+        due_date=payload.due_date,
+        external_reference=f"SIM-{uuid4().hex[:8]}",
+    )
+
+    reference_date = payload.reference_date or receivable.issue_date
+    moment = datetime.now(UTC)
+    priced = await pricing.price(receivable, product, reference_date, moment)
+
+    return PricingSimulateResponse(
+        product_code=product.code,
+        present_value=MoneySchema.model_validate(priced.pricing.present_value),
+        settlement_value=MoneySchema.model_validate(priced.settlement_value),
+        base_rate_monthly=priced.pricing.base_rate_monthly,
+        spread_monthly=priced.pricing.spread_monthly,
+        effective_monthly_rate=priced.pricing.effective_monthly_rate,
+        term_months=priced.pricing.term_months,
+        fx_rate_applied=priced.fx_rate_applied,
+    )

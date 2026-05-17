@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError, NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -18,6 +18,7 @@ from srm_credit_engine.domain.exceptions import (
     ConcurrencyConflictError,
     ReceivableNotFoundError,
 )
+from srm_credit_engine.domain.ports.repositories import Page, ReceivableFilter
 from srm_credit_engine.infrastructure import mappers
 from srm_credit_engine.infrastructure.models import (
     AssignorORM,
@@ -42,6 +43,10 @@ class SqlAlchemyAssignorRepository:
         row = (await self._session.execute(stmt)).scalar_one_or_none()
         return mappers.to_assignor(row) if row is not None else None
 
+    async def get_id_by_document(self, document: str) -> UUID | None:
+        stmt = select(AssignorORM.id).where(AssignorORM.document == document)
+        return (await self._session.execute(stmt)).scalar_one_or_none()
+
     async def add(self, assignor: Assignor) -> UUID:
         row = AssignorORM(document=assignor.document, legal_name=assignor.legal_name)
         self._session.add(row)
@@ -52,6 +57,18 @@ class SqlAlchemyAssignorRepository:
                 f"Assignor with document {assignor.document} already exists."
             ) from exc
         return row.id
+
+    async def list(self, offset: int = 0, limit: int = 50) -> Page[Assignor]:
+        total = await self._session.scalar(select(func.count()).select_from(AssignorORM)) or 0
+        stmt = (
+            select(AssignorORM)
+            .order_by(AssignorORM.legal_name)
+            .offset(offset)
+            .limit(limit)
+        )
+        rows = (await self._session.execute(stmt)).scalars().all()
+        items = [mappers.to_assignor(r) for r in rows]
+        return Page(items=items, total=int(total), offset=offset, limit=limit)
 
 
 class SqlAlchemyProductTypeRepository:
@@ -89,6 +106,38 @@ class SqlAlchemyExchangeRateRepository:
             return None
         rate = mappers.to_exchange_rate(row)
         return rate if rate.is_active_at(at) else None
+
+    async def add(self, rate: ExchangeRate) -> UUID:
+        row = ExchangeRateORM(
+            base_currency=rate.base_currency,
+            quote_currency=rate.quote_currency,
+            rate=rate.rate,
+            valid_from=rate.valid_from,
+            valid_to=rate.valid_to,
+        )
+        self._session.add(row)
+        try:
+            await self._session.flush()
+        except IntegrityError as exc:
+            raise ConcurrencyConflictError(
+                f"Exchange rate {rate.base_currency}->{rate.quote_currency} "
+                f"valid_from={rate.valid_from.isoformat()} conflicts with existing row."
+            ) from exc
+        return row.id
+
+    async def list_history(
+        self, base_currency: str, quote_currency: str
+    ) -> list[ExchangeRate]:
+        stmt = (
+            select(ExchangeRateORM)
+            .where(
+                ExchangeRateORM.base_currency == base_currency,
+                ExchangeRateORM.quote_currency == quote_currency,
+            )
+            .order_by(ExchangeRateORM.valid_from.desc())
+        )
+        rows = (await self._session.execute(stmt)).scalars().all()
+        return [mappers.to_exchange_rate(r) for r in rows]
 
 
 class SqlAlchemyReceivableRepository:
@@ -145,6 +194,56 @@ class SqlAlchemyReceivableRepository:
         row.status = receivable.status.value
         row.version = receivable.version
         await self._session.flush()
+
+    async def list(
+        self,
+        filters: ReceivableFilter,
+        offset: int = 0,
+        limit: int = 50,
+    ) -> Page[Receivable]:
+        """Paginated listing of receivables with composable filters."""
+        base_stmt = select(ReceivableORM).join(
+            AssignorORM, ReceivableORM.assignor_id == AssignorORM.id
+        )
+        count_stmt = select(func.count()).select_from(ReceivableORM).join(
+            AssignorORM, ReceivableORM.assignor_id == AssignorORM.id
+        )
+
+        conditions = []
+        if filters.assignor_document is not None:
+            conditions.append(AssignorORM.document == filters.assignor_document)
+        if filters.product_code is not None:
+            conditions.append(ReceivableORM.product_code == filters.product_code)
+        if filters.status is not None:
+            conditions.append(ReceivableORM.status == filters.status.value)
+        if filters.currency is not None:
+            conditions.append(ReceivableORM.face_value_currency == filters.currency)
+        if filters.due_from is not None:
+            conditions.append(ReceivableORM.due_date >= filters.due_from)
+        if filters.due_to is not None:
+            conditions.append(ReceivableORM.due_date <= filters.due_to)
+
+        if conditions:
+            base_stmt = base_stmt.where(*conditions)
+            count_stmt = count_stmt.where(*conditions)
+
+        total = await self._session.scalar(count_stmt) or 0
+        stmt = (
+            base_stmt.order_by(ReceivableORM.due_date.asc(), ReceivableORM.id)
+            .offset(offset)
+            .limit(limit)
+        )
+        rows = (await self._session.execute(stmt)).scalars().all()
+
+        # Pre-load assignors in one batch to avoid N+1.
+        assignor_ids = {r.assignor_id for r in rows}
+        assignors_stmt = select(AssignorORM).where(AssignorORM.id.in_(assignor_ids))
+        assignor_map = {
+            a.id: a.document
+            for a in (await self._session.execute(assignors_stmt)).scalars().all()
+        }
+        items = [mappers.to_receivable(r, assignor_map[r.assignor_id]) for r in rows]
+        return Page(items=items, total=int(total), offset=offset, limit=limit)
 
 
 class SqlAlchemySettlementRepository:
