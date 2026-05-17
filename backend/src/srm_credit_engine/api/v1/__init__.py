@@ -10,6 +10,7 @@ from srm_credit_engine.api.v1.routers import (
     pricing,
     product_types,
     receivables,
+    reports,
     settlements,
 )
 
@@ -20,5 +21,6 @@ router.include_router(exchange_rates.router)
 router.include_router(receivables.router)
 router.include_router(settlements.router)
 router.include_router(pricing.router)
+router.include_router(reports.router)
 
 __all__ = ["router"]
