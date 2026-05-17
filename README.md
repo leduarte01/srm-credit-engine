@@ -1,6 +1,6 @@
 # SRM Credit Engine
 
-> Plataforma de cessão de crédito multimoedas (FIDC) — case técnico.
+> Plataforma de cessão de crédito multimoedas para Fundos de Investimento em Direitos Creditórios (FIDC).
 >
 > Stack: **Python 3.12 + FastAPI** · **PostgreSQL 16** · **React + TS (Vite)** · **Docker Compose** · **OpenTelemetry + Prometheus + Grafana + Jaeger**
 

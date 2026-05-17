@@ -45,4 +45,4 @@ src/srm_credit_engine/
 └── infrastructure/   # Camada Persistência (DB, repositórios, gateways)
 ```
 
-A regra **2 camadas para relatórios** (req. 3.6 do case) é aplicada em `api/v1/reports.py`, que consome `infrastructure/reports/` diretamente.
+Consultas analíticas seguem o padrão **2 camadas** (`api → infrastructure/reports/`), bypassando a camada de domínio quando não há regra de negócio envolvida, em favor de SQL nativo otimizado.
