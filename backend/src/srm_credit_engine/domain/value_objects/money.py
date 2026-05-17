@@ -5,6 +5,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from decimal import ROUND_HALF_EVEN, Decimal
 
+ISO_4217_CODE_LENGTH = 3
+
 
 @dataclass(frozen=True, slots=True)
 class Money:
@@ -21,7 +23,7 @@ class Money:
     def __post_init__(self) -> None:
         if not isinstance(self.amount, Decimal):
             raise TypeError("Money.amount must be a decimal.Decimal instance.")
-        if not isinstance(self.currency, str) or len(self.currency) != 3:
+        if not isinstance(self.currency, str) or len(self.currency) != ISO_4217_CODE_LENGTH:
             raise ValueError("Currency must be an ISO-4217 three-letter code.")
         object.__setattr__(self, "currency", self.currency.upper())
 
