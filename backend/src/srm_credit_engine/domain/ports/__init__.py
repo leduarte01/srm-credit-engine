@@ -1,5 +1,6 @@
 """Outbound ports (hexagonal architecture)."""
 
+from srm_credit_engine.domain.ports.analytics import AnalyticsRepository
 from srm_credit_engine.domain.ports.currency_converter import CurrencyConverter
 from srm_credit_engine.domain.ports.repositories import (
     AssignorRepository,
@@ -10,6 +11,7 @@ from srm_credit_engine.domain.ports.repositories import (
 )
 
 __all__ = [
+    "AnalyticsRepository",
     "AssignorRepository",
     "CurrencyConverter",
     "ExchangeRateRepository",
