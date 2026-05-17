@@ -58,3 +58,10 @@ Tipos: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`
 - `test(infra): cover repositories and FX adapter against in-memory SQLite`
 - `docs: add PR-006 description`
 - `Merge PR #6: infrastructure layer (SQLAlchemy + Alembic + repositories + FX adapter)`
+
+### Etapa 5 — API REST + Swagger (`feat/api-rest` → `main`)
+- `feat(domain): extend repository ports with list and add operations`
+- `feat(api): expose v1 REST surface with routers, schemas and error handling`
+- `test(api): cover happy paths and error mapping for v1 endpoints`
+- `docs: add PR-007 description and log etapa 5`
+- `Merge PR #7: REST API v1 (FastAPI routers + OpenAPI + integration tests)`
