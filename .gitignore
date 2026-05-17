@@ -1,0 +1,47 @@
+﻿# ---------- Python ----------
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+.venv/
+venv/
+env/
+.eggs/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+.hypothesis/
+.tox/
+build/
+dist/
+.uv/
+
+# ---------- Node / Frontend ----------
+node_modules/
+dist/
+.vite/
+.turbo/
+
+# ---------- Env / Secrets ----------
+.env
+.env.*
+!.env.example
+
+# ---------- IDE / OS ----------
+.idea/
+.vscode/*
+!.vscode/extensions.json
+.DS_Store
+Thumbs.db
+
+# ---------- Logs ----------
+*.log
+logs/
+
+# ---------- Pre-commit ----------
+.pre-commit-cache/
