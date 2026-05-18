@@ -5,6 +5,7 @@ FastAPI em `/api/v1` (proxy `nginx` em produção, proxy do dev server
 em desenvolvimento).
 
 ## Pré-requisitos
+
 - Node 22+
 - npm 10+
 
