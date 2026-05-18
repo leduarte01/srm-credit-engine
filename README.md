@@ -45,20 +45,20 @@ A regra de negócio é isolada em domínio puro (sem framework) seguindo
 
 ## Stack e versões
 
-| Camada       | Tecnologia                                                      |
-| ------------ | --------------------------------------------------------------- |
-| Linguagem    | Python 3.12.10 / TypeScript 5                                   |
-| Backend      | FastAPI · Pydantic v2 · SQLAlchemy 2.0 async · asyncpg · alembic |
-| Resiliência  | tenacity (retry) · purgatory (circuit breaker)                  |
-| Observ.      | OpenTelemetry SDK · Prometheus exporter · structlog             |
-| Banco        | PostgreSQL 16 (alpine)                                          |
-| Frontend     | React 19.2 · Vite 8 · TanStack Query/Table · Zustand · axios    |
+| Camada       | Tecnologia                                                                                            |
+| ------------ | ----------------------------------------------------------------------------------------------------- |
+| Linguagem    | Python 3.12.10 / TypeScript 5                                                                         |
+| Backend      | FastAPI · Pydantic v2 · SQLAlchemy 2.0 async · asyncpg · alembic                                      |
+| Resiliência  | tenacity (retry) · purgatory (circuit breaker)                                                        |
+| Observ.      | OpenTelemetry SDK · Prometheus exporter · structlog                                                   |
+| Banco        | PostgreSQL 16 (alpine)                                                                                |
+| Frontend     | React 19.2 · Vite 8 · TanStack Query/Table · Zustand · axios                                          |
 | Estilo (FE)  | Tailwind CSS v4 (config inline; ver [ADR-003](docs/adr/ADR-003-decimal-money.md) p/ tipos monetários) |
-| Testes       | pytest + coverage · vitest + axios-mock-adapter                 |
-| Lint         | ruff · mypy strict · ESLint · Prettier                          |
-| Build        | uv (Python) · npm + Vite (FE) · hatchling (wheel)               |
-| Orquestração | docker-compose v2; nginx 1.27-alpine como reverse proxy do SPA  |
-| CI           | GitHub Actions (workflows por caminho) + pre-commit             |
+| Testes       | pytest + coverage · vitest + axios-mock-adapter                                                       |
+| Lint         | ruff · mypy strict · ESLint · Prettier                                                                |
+| Build        | uv (Python) · npm + Vite (FE) · hatchling (wheel)                                                     |
+| Orquestração | docker-compose v2; nginx 1.27-alpine como reverse proxy do SPA                                        |
+| CI           | GitHub Actions (workflows por caminho) + pre-commit                                                   |
 
 ---
 
@@ -192,18 +192,18 @@ SRM/
 
 Base path: `/api/v1`. OpenAPI interativo em `/docs`.
 
-| Recurso             | Métodos              | Descrição                                  |
-| ------------------- | -------------------- | ------------------------------------------ |
-| `/assignors`        | GET, POST, GET/{id}, PATCH/{id} | Cedentes (KYC + dados cadastrais) |
-| `/product-types`    | GET                  | Catálogo de tipos de produto               |
-| `/receivables`      | GET, POST, GET/{id}, PATCH/{id} | Recebíveis                        |
-| `/pricing`          | POST                 | Precifica recebível (simples/composto + FX) |
-| `/exchange-rates`   | GET                  | Audit trail de cotações usadas             |
-| `/settlements`      | GET, POST            | Liquidações                                |
-| `/reports/*`        | GET                  | Sumarizações analíticas da carteira        |
-| `/health`           | GET                  | Liveness                                   |
-| `/health/ready`     | GET                  | Readiness (ping no DB)                     |
-| `/metrics`          | GET                  | Prometheus scrape                          |
+| Recurso           | Métodos                         | Descrição                                   |
+| ----------------- | ------------------------------- | ------------------------------------------- |
+| `/assignors`      | GET, POST, GET/{id}, PATCH/{id} | Cedentes (KYC + dados cadastrais)           |
+| `/product-types`  | GET                             | Catálogo de tipos de produto                |
+| `/receivables`    | GET, POST, GET/{id}, PATCH/{id} | Recebíveis                                  |
+| `/pricing`        | POST                            | Precifica recebível (simples/composto + FX) |
+| `/exchange-rates` | GET                             | Audit trail de cotações usadas              |
+| `/settlements`    | GET, POST                       | Liquidações                                 |
+| `/reports/*`      | GET                             | Sumarizações analíticas da carteira         |
+| `/health`         | GET                             | Liveness                                    |
+| `/health/ready`   | GET                             | Readiness (ping no DB)                      |
+| `/metrics`        | GET                             | Prometheus scrape                           |
 
 Valores monetários trafegam **sempre como string decimal** —
 ver [ADR-003](docs/adr/ADR-003-decimal-money.md).
@@ -215,7 +215,7 @@ ver [ADR-003](docs/adr/ADR-003-decimal-money.md).
 Três workflows path-filtered (`.github/workflows/`):
 
 - **backend.yml** — `ruff check` + `ruff format --check` + `mypy strict`
-  + `pytest` (cobertura ≥ 80%, falha CI abaixo).
+  - `pytest` (cobertura ≥ 80%, falha CI abaixo).
 - **frontend.yml** — `prettier --check` + `eslint` + `tsc --noEmit` +
   `vitest run` + `vite build`.
 - **docker.yml** — build paralelo das imagens (cache `type=gha`) +
@@ -248,14 +248,14 @@ Princípios não-negociáveis:
 
 ## Decisões registradas (ADRs)
 
-| ID  | Título                                                                              | Status |
-| --- | ----------------------------------------------------------------------------------- | ------ |
-| 001 | [Branching Strategy: GitHub Flow](docs/adr/ADR-001-branching-strategy.md)           | Aceito |
-| 002 | [Arquitetura Hexagonal (Ports & Adapters)](docs/adr/ADR-002-hexagonal-architecture.md) | Aceito |
-| 003 | [Decimal serializado como string](docs/adr/ADR-003-decimal-money.md)                | Aceito |
-| 004 | [Camadas de resiliência](docs/adr/ADR-004-resilience-layering.md)                   | Aceito |
+| ID  | Título                                                                                    | Status |
+| --- | ----------------------------------------------------------------------------------------- | ------ |
+| 001 | [Branching Strategy: GitHub Flow](docs/adr/ADR-001-branching-strategy.md)                 | Aceito |
+| 002 | [Arquitetura Hexagonal (Ports & Adapters)](docs/adr/ADR-002-hexagonal-architecture.md)    | Aceito |
+| 003 | [Decimal serializado como string](docs/adr/ADR-003-decimal-money.md)                      | Aceito |
+| 004 | [Camadas de resiliência](docs/adr/ADR-004-resilience-layering.md)                         | Aceito |
 | 005 | [Observabilidade: OTel + Prometheus + structlog](docs/adr/ADR-005-observability-stack.md) | Aceito |
-| 006 | [Multi-tenancy: single-DB com `tenant_id`](docs/adr/ADR-006-multi-tenancy.md)       | Aceito |
+| 006 | [Multi-tenancy: single-DB com `tenant_id`](docs/adr/ADR-006-multi-tenancy.md)             | Aceito |
 
 ## Operação em crise
 
