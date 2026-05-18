@@ -65,9 +65,7 @@ def test_present_value_never_exceeds_face_value(
 
 @settings(suppress_health_check=[HealthCheck.too_slow], deadline=None)
 @given(face=POSITIVE_FACE, term=TERMS, base=BASE_RATES)
-def test_present_value_is_strictly_positive(
-    face: Decimal, term: Decimal, base: Decimal
-) -> None:
+def test_present_value_is_strictly_positive(face: Decimal, term: Decimal, base: Decimal) -> None:
     for strategy in STRATEGIES:
         result = strategy.price(Money(face, "BRL"), term, base)
         assert result.present_value.amount > 0
@@ -75,9 +73,7 @@ def test_present_value_is_strictly_positive(
 
 @settings(suppress_health_check=[HealthCheck.too_slow], deadline=None)
 @given(face=POSITIVE_FACE, term=TERMS, base=BASE_RATES)
-def test_effective_rate_is_base_plus_spread(
-    face: Decimal, term: Decimal, base: Decimal
-) -> None:
+def test_effective_rate_is_base_plus_spread(face: Decimal, term: Decimal, base: Decimal) -> None:
     for strategy in STRATEGIES:
         result = strategy.price(Money(face, "BRL"), term, base)
         assert result.effective_monthly_rate == base + result.spread_monthly

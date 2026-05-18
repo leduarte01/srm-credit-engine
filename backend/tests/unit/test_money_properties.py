@@ -50,9 +50,7 @@ def test_addition_is_commutative(a: Decimal, b: Decimal, currency: str) -> None:
     c=POSITIVE_DECIMALS,
     currency=CURRENCIES,
 )
-def test_addition_is_associative(
-    a: Decimal, b: Decimal, c: Decimal, currency: str
-) -> None:
+def test_addition_is_associative(a: Decimal, b: Decimal, c: Decimal, currency: str) -> None:
     left = Money(a, currency).add(Money(b, currency)).add(Money(c, currency))
     right = Money(a, currency).add(Money(b, currency).add(Money(c, currency)))
     assert left == right

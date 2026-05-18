@@ -95,9 +95,7 @@ async def test_resilient_converter_propagates_domain_error_without_retry() -> No
     inner = _FakeConverter(failures=10, exc=ExchangeRateNotFoundError("no rate"))
     wrapper = ResilientCurrencyConverter(inner, attempts=5)
     with pytest.raises(ExchangeRateNotFoundError):
-        await wrapper.convert(
-            Money(Decimal("10"), "USD"), "BRL", datetime(2024, 1, 1, tzinfo=UTC)
-        )
+        await wrapper.convert(Money(Decimal("10"), "USD"), "BRL", datetime(2024, 1, 1, tzinfo=UTC))
     assert inner.calls == 1
 
 
@@ -118,9 +116,7 @@ async def test_resilient_converter_opens_circuit_after_threshold() -> None:
     calls_before_open = inner.calls
     # Third call must short-circuit *without* touching the inner converter.
     with pytest.raises(Exception):  # noqa: B017 — breaker raises OpenedState
-        await wrapper.convert(
-            Money(Decimal("10"), "USD"), "BRL", datetime(2024, 1, 1, tzinfo=UTC)
-        )
+        await wrapper.convert(Money(Decimal("10"), "USD"), "BRL", datetime(2024, 1, 1, tzinfo=UTC))
     assert inner.calls == calls_before_open
 
 
@@ -128,12 +124,8 @@ async def test_resilient_converter_opens_circuit_after_threshold() -> None:
 async def test_resilient_converter_uses_per_pair_breakers() -> None:
     inner_usd = _FakeConverter(failures=100)
     inner_eur = _FakeConverter(failures=0)
-    wrapper_usd = ResilientCurrencyConverter(
-        inner_usd, threshold=1, ttl_seconds=10.0, attempts=1
-    )
-    wrapper_eur = ResilientCurrencyConverter(
-        inner_eur, threshold=1, ttl_seconds=10.0, attempts=1
-    )
+    wrapper_usd = ResilientCurrencyConverter(inner_usd, threshold=1, ttl_seconds=10.0, attempts=1)
+    wrapper_eur = ResilientCurrencyConverter(inner_eur, threshold=1, ttl_seconds=10.0, attempts=1)
 
     with pytest.raises(OperationalError):
         await wrapper_usd.convert(

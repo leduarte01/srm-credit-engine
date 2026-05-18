@@ -101,9 +101,7 @@ async def list_receivables(
     responses={404: {"model": ErrorResponse}, 409: {"model": ErrorResponse}},
     summary="Cancel a receivable (must not be settled).",
 )
-async def cancel_receivable(
-    receivable_id: UUID, repo: ReceivableRepoDep
-) -> ReceivableResponse:
+async def cancel_receivable(receivable_id: UUID, repo: ReceivableRepoDep) -> ReceivableResponse:
     receivable = await repo.get_by_id(receivable_id)
     if receivable is None:
         raise ReceivableNotFoundError(f"Receivable {receivable_id} not found.")

@@ -60,12 +60,7 @@ class SqlAlchemyAssignorRepository:
 
     async def list(self, offset: int = 0, limit: int = 50) -> Page[Assignor]:
         total = await self._session.scalar(select(func.count()).select_from(AssignorORM)) or 0
-        stmt = (
-            select(AssignorORM)
-            .order_by(AssignorORM.legal_name)
-            .offset(offset)
-            .limit(limit)
-        )
+        stmt = select(AssignorORM).order_by(AssignorORM.legal_name).offset(offset).limit(limit)
         rows = (await self._session.execute(stmt)).scalars().all()
         items = [mappers.to_assignor(r) for r in rows]
         return Page(items=items, total=int(total), offset=offset, limit=limit)
@@ -125,9 +120,7 @@ class SqlAlchemyExchangeRateRepository:
             ) from exc
         return row.id
 
-    async def list_history(
-        self, base_currency: str, quote_currency: str
-    ) -> list[ExchangeRate]:
+    async def list_history(self, base_currency: str, quote_currency: str) -> list[ExchangeRate]:
         stmt = (
             select(ExchangeRateORM)
             .where(
@@ -205,8 +198,10 @@ class SqlAlchemyReceivableRepository:
         base_stmt = select(ReceivableORM).join(
             AssignorORM, ReceivableORM.assignor_id == AssignorORM.id
         )
-        count_stmt = select(func.count()).select_from(ReceivableORM).join(
-            AssignorORM, ReceivableORM.assignor_id == AssignorORM.id
+        count_stmt = (
+            select(func.count())
+            .select_from(ReceivableORM)
+            .join(AssignorORM, ReceivableORM.assignor_id == AssignorORM.id)
         )
 
         conditions = []
@@ -239,8 +234,7 @@ class SqlAlchemyReceivableRepository:
         assignor_ids = {r.assignor_id for r in rows}
         assignors_stmt = select(AssignorORM).where(AssignorORM.id.in_(assignor_ids))
         assignor_map = {
-            a.id: a.document
-            for a in (await self._session.execute(assignors_stmt)).scalars().all()
+            a.id: a.document for a in (await self._session.execute(assignors_stmt)).scalars().all()
         }
         items = [mappers.to_receivable(r, assignor_map[r.assignor_id]) for r in rows]
         return Page(items=items, total=int(total), offset=offset, limit=limit)

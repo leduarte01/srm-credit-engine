@@ -45,9 +45,7 @@ def test_cheque_uses_higher_spread() -> None:
 
 
 def test_contrato_usd_returns_usd_present_value() -> None:
-    result = ContratoUsdStrategy.price(
-        Money(Decimal("10000.00"), "USD"), Decimal("3"), BASE_RATE
-    )
+    result = ContratoUsdStrategy.price(Money(Decimal("10000.00"), "USD"), Decimal("3"), BASE_RATE)
     assert result.present_value.currency == "USD"
     # base 1% + spread 1.2% = 2.2% ; PV = 10000 / 1.022^3 ≈ 9368.01
     assert _approx(result.present_value.amount, Decimal("9368.01"))
@@ -62,9 +60,7 @@ def test_zero_term_returns_face_value() -> None:
 
 def test_negative_term_rejected() -> None:
     with pytest.raises(ValueError, match="term_months"):
-        DuplicataMercantilStrategy.price(
-            Money(Decimal("500.00"), "BRL"), Decimal("-1"), BASE_RATE
-        )
+        DuplicataMercantilStrategy.price(Money(Decimal("500.00"), "BRL"), Decimal("-1"), BASE_RATE)
 
 
 def test_negative_base_rate_rejected() -> None:

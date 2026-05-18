@@ -43,9 +43,7 @@ class ResilientCurrencyConverter:
     async def convert(self, amount: Money, target_currency: str, at: datetime) -> Money:
         circuit_name = f"fx:{amount.currency}->{target_currency}"
         factory = get_breaker_factory()
-        breaker = await factory.get_breaker(
-            circuit_name, threshold=self._threshold, ttl=self._ttl
-        )
+        breaker = await factory.get_breaker(circuit_name, threshold=self._threshold, ttl=self._ttl)
 
         async def _call() -> Money:
             return await self._inner.convert(amount, target_currency, at)
