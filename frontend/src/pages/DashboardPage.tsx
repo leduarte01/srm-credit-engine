@@ -1,9 +1,10 @@
 import { useState } from 'react';
 
 import { ApiClientError } from '../api/client';
+import { KpiCards } from '../components/KpiCards';
+import { PricingSimulator } from '../components/PricingSimulator';
 import { ReceivableFilters } from '../components/ReceivableFilters';
 import { ReceivableTable } from '../components/ReceivableTable';
-import { PricingSimulator } from '../components/PricingSimulator';
 import { useCancelReceivable, useReceivables, useSettleReceivable } from '../hooks/queries';
 import { useUiStore } from '../store/uiStore';
 import type { Receivable } from '../types/domain';
@@ -57,6 +58,8 @@ export function DashboardPage() {
           {isFetching ? 'Refreshing…' : 'Refresh'}
         </button>
       </header>
+
+      <KpiCards />
 
       <PricingSimulator />
 
