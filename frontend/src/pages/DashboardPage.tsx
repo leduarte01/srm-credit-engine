@@ -79,7 +79,10 @@ export function DashboardPage() {
         {isLoading && <p className="text-sm text-zinc-600">Loading receivables…</p>}
 
         {isError && (
-          <p role="alert" className="rounded-md bg-rose-50 px-3 py-2 text-sm text-rose-700 ring-1 ring-inset ring-rose-200">
+          <p
+            role="alert"
+            className="rounded-md bg-rose-50 px-3 py-2 text-sm text-rose-700 ring-1 ring-inset ring-rose-200"
+          >
             {error instanceof ApiClientError
               ? `${error.code}: ${error.message}`
               : (error as Error).message}
@@ -91,8 +94,12 @@ export function DashboardPage() {
             <ReceivableTable
               data={data.items}
               pendingId={pendingId}
-              onSettle={(r) => void runAction(r, (id) => settleMutation.mutateAsync({ id }), 'Settled')}
-              onCancel={(r) => void runAction(r, (id) => cancelMutation.mutateAsync(id), 'Cancelled')}
+              onSettle={(r) =>
+                void runAction(r, (id) => settleMutation.mutateAsync({ id }), 'Settled')
+              }
+              onCancel={(r) =>
+                void runAction(r, (id) => cancelMutation.mutateAsync(id), 'Cancelled')
+              }
             />
             <p className="text-xs text-zinc-500">
               Showing {data.items.length} of {data.meta.total} receivables.

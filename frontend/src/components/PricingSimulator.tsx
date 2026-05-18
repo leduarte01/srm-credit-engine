@@ -99,7 +99,10 @@ export function PricingSimulator() {
       </form>
 
       {mutation.isError && (
-        <p role="alert" className="mt-4 rounded-md bg-rose-50 px-3 py-2 text-sm text-rose-700 ring-1 ring-inset ring-rose-200">
+        <p
+          role="alert"
+          className="mt-4 rounded-md bg-rose-50 px-3 py-2 text-sm text-rose-700 ring-1 ring-inset ring-rose-200"
+        >
           {mutation.error instanceof ApiClientError
             ? `${mutation.error.code}: ${mutation.error.message}`
             : mutation.error.message}
@@ -108,10 +111,28 @@ export function PricingSimulator() {
 
       {mutation.data && (
         <dl className="mt-5 grid grid-cols-2 gap-3 rounded-md bg-zinc-50 p-4 text-sm sm:grid-cols-3">
-          <Stat label="Present value" value={formatMoney(mutation.data.present_value.amount, mutation.data.present_value.currency)} />
-          <Stat label="Settlement value" value={formatMoney(mutation.data.settlement_value.amount, mutation.data.settlement_value.currency)} />
-          <Stat label="Effective rate / month" value={formatRatePercent(mutation.data.effective_monthly_rate)} />
-          <Stat label="Base rate / month" value={formatRatePercent(mutation.data.base_rate_monthly)} />
+          <Stat
+            label="Present value"
+            value={formatMoney(
+              mutation.data.present_value.amount,
+              mutation.data.present_value.currency,
+            )}
+          />
+          <Stat
+            label="Settlement value"
+            value={formatMoney(
+              mutation.data.settlement_value.amount,
+              mutation.data.settlement_value.currency,
+            )}
+          />
+          <Stat
+            label="Effective rate / month"
+            value={formatRatePercent(mutation.data.effective_monthly_rate)}
+          />
+          <Stat
+            label="Base rate / month"
+            value={formatRatePercent(mutation.data.base_rate_monthly)}
+          />
           <Stat label="Spread / month" value={formatRatePercent(mutation.data.spread_monthly)} />
           <Stat label="Term (months)" value={Number(mutation.data.term_months).toFixed(4)} />
           {mutation.data.fx_rate_applied && (
