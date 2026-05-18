@@ -95,3 +95,13 @@ Tipos: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`
 - `test(resilience): cover retry policy, circuit breaker and resilient converter`
 - `docs: add PR-011 description and log etapa 9`
 - `Merge PR #11: resilience (tenacity retries + purgatory circuit breakers)`
+
+### Etapa 10 — Frontend (`feat/frontend` → `main`)
+- `chore(frontend): scaffold vite + react 19 + ts project with tailwind v4`
+- `chore(frontend): wire vitest, jsdom setup and dev proxy for the api`
+- `feat(frontend): add typed axios client and endpoints for the credit api`
+- `feat(frontend): add formatting helpers, query hooks and zustand ui store`
+- `feat(frontend): add operator panel with receivable grid and pricing simulator`
+- `test(frontend): cover api error wrapping and receivable table rendering`
+- `docs: add PR-012 description and log etapa 10`
+- `Merge PR #12: frontend (operator panel with pricing simulator and receivables grid)`
