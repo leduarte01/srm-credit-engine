@@ -113,3 +113,13 @@ Tipos: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`
 - `build(compose): add end-to-end stack with postgres, backend and frontend`
 - `docs: add PR-013 description and log etapa 11`
 - `Merge PR #13: docker (end-to-end local stack with compose)`
+
+### Etapa 12 — CI/CD + Pre-commit (`ci/github-actions` → `main`)
+- `style(backend): apply ruff format to align with the new ci gate`
+- `style(frontend): apply prettier to align with the new ci gate`
+- `ci(backend): add github actions workflow with ruff, mypy and pytest`
+- `ci(frontend): add github actions workflow with prettier, eslint, vitest and build`
+- `ci(docker): add workflow to build images and validate compose`
+- `chore: add pre-commit config with ruff, prettier and hygiene hooks`
+- `docs: add PR-014 description and log etapa 12`
+- `Merge PR #14: ci/cd (github actions + pre-commit)`
