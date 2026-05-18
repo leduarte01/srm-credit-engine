@@ -8,6 +8,7 @@ from decimal import Decimal
 from srm_credit_engine.domain.exceptions import ExchangeRateNotFoundError
 from srm_credit_engine.domain.ports.repositories import ExchangeRateRepository
 from srm_credit_engine.domain.value_objects.money import Money
+from srm_credit_engine.observability.metrics import FX_LOOKUPS
 
 
 class DatabaseCurrencyConverter:
@@ -32,13 +33,16 @@ class DatabaseCurrencyConverter:
 
         direct = await self._rates.get_active(amount.currency, target_currency, at)
         if direct is not None:
+            FX_LOOKUPS.labels(amount.currency, target_currency, "direct").inc()
             return Money(amount.amount * direct.rate, target_currency).quantize(8)
 
         inverse = await self._rates.get_active(target_currency, amount.currency, at)
         if inverse is not None:
+            FX_LOOKUPS.labels(amount.currency, target_currency, "inverse").inc()
             inverted_rate = Decimal("1") / inverse.rate
             return Money(amount.amount * inverted_rate, target_currency).quantize(8)
 
+        FX_LOOKUPS.labels(amount.currency, target_currency, "missing").inc()
         raise ExchangeRateNotFoundError(
             f"No FX rate available between {amount.currency} and {target_currency} at {at!s}."
         )
