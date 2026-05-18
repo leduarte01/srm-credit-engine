@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from srm_credit_engine.config import Settings, get_settings
 from srm_credit_engine.domain.ports.analytics import AnalyticsRepository
+from srm_credit_engine.domain.ports.currency_converter import CurrencyConverter
 from srm_credit_engine.domain.ports.repositories import (
     AssignorRepository,
     ExchangeRateRepository,
@@ -30,6 +31,7 @@ from srm_credit_engine.infrastructure.repositories import (
     SqlAlchemyReceivableRepository,
     SqlAlchemySettlementRepository,
 )
+from srm_credit_engine.resilience import ResilientCurrencyConverter
 
 SessionDep = Annotated[AsyncSession, Depends(get_session)]
 SettingsDep = Annotated[Settings, Depends(get_settings)]
@@ -61,12 +63,12 @@ def get_analytics_repo(session: SessionDep) -> AnalyticsRepository:
 
 def get_currency_converter(
     rates: Annotated[ExchangeRateRepository, Depends(get_exchange_rate_repo)],
-) -> DatabaseCurrencyConverter:
-    return DatabaseCurrencyConverter(rates)
+) -> CurrencyConverter:
+    return ResilientCurrencyConverter(DatabaseCurrencyConverter(rates))
 
 
 def get_pricing_service(
-    converter: Annotated[DatabaseCurrencyConverter, Depends(get_currency_converter)],
+    converter: Annotated[CurrencyConverter, Depends(get_currency_converter)],
     settings: SettingsDep,
 ) -> PricingService:
     return PricingService(
