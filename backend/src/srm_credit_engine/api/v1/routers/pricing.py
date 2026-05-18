@@ -16,6 +16,7 @@ from srm_credit_engine.api.v1.schemas.pricing import (
 from srm_credit_engine.domain.entities.receivable import Receivable
 from srm_credit_engine.domain.exceptions import ProductTypeNotFoundError
 from srm_credit_engine.domain.value_objects.money import Money
+from srm_credit_engine.observability.metrics import PRICING_OPERATIONS
 
 router = APIRouter(prefix="/pricing", tags=["pricing"])
 
@@ -48,7 +49,12 @@ async def simulate(
 
     reference_date = payload.reference_date or receivable.issue_date
     moment = datetime.now(UTC)
-    priced = await pricing.price(receivable, product, reference_date, moment)
+    try:
+        priced = await pricing.price(receivable, product, reference_date, moment)
+    except Exception:
+        PRICING_OPERATIONS.labels(product.code, "failure").inc()
+        raise
+    PRICING_OPERATIONS.labels(product.code, "success").inc()
 
     return PricingSimulateResponse(
         product_code=product.code,

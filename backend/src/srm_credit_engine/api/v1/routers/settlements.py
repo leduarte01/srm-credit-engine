@@ -25,6 +25,7 @@ from srm_credit_engine.domain.exceptions import (
     ReceivableNotFoundError,
     SettlementNotFoundError,
 )
+from srm_credit_engine.observability.metrics import SETTLEMENT_OPERATIONS
 
 router = APIRouter(prefix="/settlements", tags=["settlements"])
 
@@ -122,6 +123,7 @@ async def create_settlement(
     await receivables.update(receivable)
 
     await settlements.add(settlement)
+    SETTLEMENT_OPERATIONS.labels(product.code, "success").inc()
     return _to_response(settlement)
 
 
