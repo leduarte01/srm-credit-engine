@@ -56,3 +56,13 @@ jobs:
         run: npm run build
         env:
           VITE_API_BASE_URL: /api/v1
+
+  deploy:
+    name: Deploy to EasyPanel
+    needs: quality
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Trigger EasyPanel deploy
+        run: curl -s -f -X POST "${{ secrets.EASYPANEL_FRONTEND_WEBHOOK }}"
