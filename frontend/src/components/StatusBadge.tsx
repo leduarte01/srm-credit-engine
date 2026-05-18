@@ -1,3 +1,5 @@
+import { useI18n } from '../hooks/useI18n';
+import type { TranslationKey } from '../lib/i18n';
 import type { ReceivableStatus } from '../types/domain';
 
 const STYLES: Record<ReceivableStatus, string> = {
@@ -6,16 +8,23 @@ const STYLES: Record<ReceivableStatus, string> = {
   CANCELLED: 'bg-zinc-200 text-zinc-700 ring-zinc-300',
 };
 
+const STATUS_LABEL_KEY: Record<ReceivableStatus, TranslationKey> = {
+  PENDING: 'status_pending',
+  SETTLED: 'status_settled',
+  CANCELLED: 'status_cancelled',
+};
+
 interface Props {
   status: ReceivableStatus;
 }
 
 export function StatusBadge({ status }: Props) {
+  const { t } = useI18n();
   return (
     <span
       className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${STYLES[status]}`}
     >
-      {status}
+      {t(STATUS_LABEL_KEY[status])}
     </span>
   );
 }

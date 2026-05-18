@@ -1,22 +1,24 @@
+import { useI18n } from '../hooks/useI18n';
 import { useReceivableStats } from '../hooks/queries';
+import type { TranslationKey } from '../lib/i18n';
 
 const STATUS_CONFIG = {
   PENDING: {
-    label: 'Pending',
+    labelKey: 'kpi_pending' as TranslationKey,
     barColor: 'bg-amber-400',
     textColor: 'text-amber-700',
     cardBg: 'bg-amber-50',
     ring: 'ring-amber-200',
   },
   SETTLED: {
-    label: 'Settled',
+    labelKey: 'kpi_settled' as TranslationKey,
     barColor: 'bg-emerald-500',
     textColor: 'text-emerald-700',
     cardBg: 'bg-emerald-50',
     ring: 'ring-emerald-200',
   },
   CANCELLED: {
-    label: 'Cancelled',
+    labelKey: 'kpi_cancelled' as TranslationKey,
     barColor: 'bg-zinc-400',
     textColor: 'text-zinc-600',
     cardBg: 'bg-zinc-100',
@@ -25,6 +27,7 @@ const STATUS_CONFIG = {
 } as const;
 
 export function KpiCards() {
+  const { t } = useI18n();
   const { pending, settled, cancelled } = useReceivableStats();
 
   const counts = {
@@ -40,7 +43,9 @@ export function KpiCards() {
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
       {/* Total card */}
       <div className="rounded-xl bg-white px-4 py-5 ring-1 ring-inset ring-zinc-200">
-        <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Total</p>
+        <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
+          {t('kpi_total')}
+        </p>
         {isLoading ? (
           <div className="mt-2 h-8 w-10 animate-pulse rounded bg-zinc-200" />
         ) : (
@@ -66,7 +71,7 @@ export function KpiCards() {
             className={`rounded-xl px-4 py-5 ring-1 ring-inset ${cfg.cardBg} ${cfg.ring}`}
           >
             <p className={`text-xs font-semibold uppercase tracking-wider ${cfg.textColor}`}>
-              {cfg.label}
+              {t(cfg.labelKey)}
             </p>
             {loading ? (
               <div className="mt-2 h-8 w-10 animate-pulse rounded bg-zinc-200" />

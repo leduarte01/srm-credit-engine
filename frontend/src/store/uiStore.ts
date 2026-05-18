@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 
+import type { Lang } from '../lib/i18n';
 import type { ReceivableListFilters, ReceivableStatus } from '../types/domain';
 
 interface UiState {
@@ -12,9 +13,19 @@ interface UiState {
   resetFilters: () => void;
   selectedReceivableId: string | null;
   selectReceivable: (id: string | null) => void;
+  lang: Lang;
+  setLang: (lang: Lang) => void;
 }
 
 const initialFilters: ReceivableListFilters = { offset: 0, limit: 50 };
+
+function storedLang(): Lang {
+  try {
+    return localStorage.getItem('srm_lang') === 'pt' ? 'pt' : 'en';
+  } catch {
+    return 'en';
+  }
+}
 
 export const useUiStore = create<UiState>((set) => ({
   filters: initialFilters,
@@ -29,4 +40,13 @@ export const useUiStore = create<UiState>((set) => ({
   resetFilters: () => set({ filters: initialFilters }),
   selectedReceivableId: null,
   selectReceivable: (id) => set({ selectedReceivableId: id }),
+  lang: storedLang(),
+  setLang: (lang) => {
+    try {
+      localStorage.setItem('srm_lang', lang);
+    } catch {
+      /* ignore */
+    }
+    set({ lang });
+  },
 }));

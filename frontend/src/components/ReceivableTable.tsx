@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { flexRender, getCoreRowModel, useReactTable, type ColumnDef } from '@tanstack/react-table';
 
+import { useI18n } from '../hooks/useI18n';
 import { formatDate, formatMoney } from '../lib/format';
 import type { Receivable } from '../types/domain';
 import { StatusBadge } from './StatusBadge';
@@ -13,28 +14,30 @@ interface Props {
 }
 
 export function ReceivableTable({ data, onSettle, onCancel, pendingId }: Props) {
+  const { t, lang } = useI18n();
+
   const columns = useMemo<ColumnDef<Receivable>[]>(
     () => [
       {
-        header: 'Reference',
+        header: t('col_reference'),
         accessorKey: 'external_reference',
         cell: (info) => (
           <span className="font-mono text-xs text-zinc-700">{info.getValue<string>()}</span>
         ),
       },
       {
-        header: 'Assignor',
+        header: t('col_assignor'),
         accessorKey: 'assignor_document',
         cell: (info) => (
           <span className="font-mono text-xs text-zinc-600">{info.getValue<string>()}</span>
         ),
       },
       {
-        header: 'Product',
+        header: t('col_product'),
         accessorKey: 'product_code',
       },
       {
-        header: 'Face value',
+        header: t('col_face_value'),
         accessorFn: (row) => row.face_value,
         id: 'face_value',
         cell: (info) => {
@@ -43,17 +46,17 @@ export function ReceivableTable({ data, onSettle, onCancel, pendingId }: Props) 
         },
       },
       {
-        header: 'Issue',
+        header: t('col_issue'),
         accessorKey: 'issue_date',
         cell: (info) => formatDate(info.getValue<string>()),
       },
       {
-        header: 'Due',
+        header: t('col_due'),
         accessorKey: 'due_date',
         cell: (info) => formatDate(info.getValue<string>()),
       },
       {
-        header: 'Status',
+        header: t('col_status'),
         accessorKey: 'status',
         cell: (info) => <StatusBadge status={info.getValue<Receivable['status']>()} />,
       },
@@ -72,7 +75,7 @@ export function ReceivableTable({ data, onSettle, onCancel, pendingId }: Props) 
                 onClick={() => onSettle?.(r)}
                 className="inline-flex items-center rounded-md bg-emerald-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-emerald-500 disabled:opacity-50"
               >
-                {busy ? 'Settling…' : 'Settle'}
+                {busy ? t('btn_settling') : t('btn_settle')}
               </button>
               <button
                 type="button"
@@ -80,14 +83,15 @@ export function ReceivableTable({ data, onSettle, onCancel, pendingId }: Props) 
                 onClick={() => onCancel?.(r)}
                 className="inline-flex items-center rounded-md bg-zinc-100 px-2.5 py-1 text-xs font-medium text-zinc-700 ring-1 ring-inset ring-zinc-300 hover:bg-zinc-200 disabled:opacity-50"
               >
-                Cancel
+                {t('btn_cancel')}
               </button>
             </div>
           );
         },
       },
     ],
-    [onSettle, onCancel, pendingId],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [onSettle, onCancel, pendingId, lang],
   );
 
   const table = useReactTable({ data, columns, getCoreRowModel: getCoreRowModel() });
@@ -116,7 +120,7 @@ export function ReceivableTable({ data, onSettle, onCancel, pendingId }: Props) 
           {table.getRowModel().rows.length === 0 ? (
             <tr>
               <td colSpan={columns.length} className="px-3 py-6 text-center text-sm text-zinc-500">
-                No receivables match the current filters.
+                {t('no_receivables')}
               </td>
             </tr>
           ) : (

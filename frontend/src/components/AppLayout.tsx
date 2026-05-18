@@ -1,25 +1,31 @@
 import { useState } from 'react';
 
+import { useI18n } from '../hooks/useI18n';
+import { HelpModal } from './HelpModal';
+import { LanguageToggle } from './LanguageToggle';
+
 interface AppLayoutProps {
   children: React.ReactNode;
 }
 
-const NAV_ITEMS = [
-  { label: 'Receivables', href: '#', active: true },
-  { label: 'Config', href: '#', active: false, soon: true },
-] as const;
+function SidebarContent({ onHelpOpen }: { onHelpOpen: () => void }) {
+  const { t } = useI18n();
 
-function SidebarContent() {
+  const NAV_ITEMS = [
+    { labelKey: 'nav_receivables' as const, href: '#', active: true },
+    { labelKey: 'nav_config' as const, href: '#', active: false, soon: true },
+  ];
+
   return (
     <div className="flex h-full w-64 flex-col bg-zinc-900 px-4 py-6 text-zinc-100">
       <div className="mb-8 px-2">
         <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500">SRM</p>
         <p className="mt-1 text-lg font-bold tracking-tight">Credit Engine</p>
       </div>
-      <nav>
+      <nav className="flex-1">
         <ul className="space-y-1">
           {NAV_ITEMS.map((item) => (
-            <li key={item.label}>
+            <li key={item.labelKey}>
               <a
                 href={item.href}
                 aria-current={item.active ? 'page' : undefined}
@@ -30,10 +36,10 @@ function SidebarContent() {
                 }
                 onClick={(e) => e.preventDefault()}
               >
-                {item.label}
+                {t(item.labelKey)}
                 {'soon' in item && item.soon && (
                   <span className="rounded-full bg-zinc-800 px-2 py-0.5 text-xs text-zinc-500">
-                    soon
+                    {t('nav_soon')}
                   </span>
                 )}
               </a>
@@ -41,18 +47,31 @@ function SidebarContent() {
           ))}
         </ul>
       </nav>
+
+      {/* Bottom controls */}
+      <div className="mt-6 flex items-center justify-between border-t border-zinc-800 pt-4">
+        <LanguageToggle />
+        <button
+          type="button"
+          onClick={onHelpOpen}
+          className="rounded-md px-2 py-1 text-xs font-medium text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
+        >
+          {t('help_btn')}
+        </button>
+      </div>
     </div>
   );
 }
 
 export function AppLayout({ children }: AppLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
 
   return (
     <div className="flex min-h-screen bg-zinc-50 text-zinc-900">
       {/* Desktop sidebar */}
       <aside className="hidden lg:flex lg:flex-shrink-0">
-        <SidebarContent />
+        <SidebarContent onHelpOpen={() => setHelpOpen(true)} />
       </aside>
 
       {/* Mobile sidebar overlay */}
@@ -64,7 +83,12 @@ export function AppLayout({ children }: AppLayoutProps) {
             onClick={() => setSidebarOpen(false)}
           />
           <aside className="absolute inset-y-0 left-0 z-50">
-            <SidebarContent />
+            <SidebarContent
+              onHelpOpen={() => {
+                setSidebarOpen(false);
+                setHelpOpen(true);
+              }}
+            />
           </aside>
         </div>
       )}
@@ -93,11 +117,21 @@ export function AppLayout({ children }: AppLayoutProps) {
               />
             </svg>
           </button>
-          <span className="font-semibold">Credit Engine</span>
+          <span className="flex-1 font-semibold">Credit Engine</span>
+          <LanguageToggle />
+          <button
+            type="button"
+            onClick={() => setHelpOpen(true)}
+            className="rounded-md px-2 py-1 text-xs font-medium text-zinc-500 hover:bg-zinc-100"
+          >
+            ?
+          </button>
         </header>
 
         <div className="flex-1 overflow-auto">{children}</div>
       </div>
+
+      <HelpModal open={helpOpen} onClose={() => setHelpOpen(false)} />
     </div>
   );
 }

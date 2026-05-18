@@ -5,11 +5,13 @@ import { KpiCards } from '../components/KpiCards';
 import { PricingSimulator } from '../components/PricingSimulator';
 import { ReceivableFilters } from '../components/ReceivableFilters';
 import { ReceivableTable } from '../components/ReceivableTable';
+import { useI18n } from '../hooks/useI18n';
 import { useCancelReceivable, useReceivables, useSettleReceivable } from '../hooks/queries';
 import { useUiStore } from '../store/uiStore';
 import type { Receivable } from '../types/domain';
 
 export function DashboardPage() {
+  const { t } = useI18n();
   const filters = useUiStore((s) => s.filters);
   const { data, isLoading, isError, error, refetch, isFetching } = useReceivables(filters);
   const settleMutation = useSettleReceivable();
@@ -44,10 +46,8 @@ export function DashboardPage() {
     <main className="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
       <header className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-zinc-900">Operator panel</h1>
-          <p className="text-sm text-zinc-600">
-            Review receivables, simulate pricing and settle outstanding balances.
-          </p>
+          <h1 className="text-2xl font-bold text-zinc-900">{t('page_title')}</h1>
+          <p className="text-sm text-zinc-600">{t('page_subtitle')}</p>
         </div>
         <button
           type="button"
@@ -55,7 +55,7 @@ export function DashboardPage() {
           className="inline-flex items-center rounded-md bg-zinc-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-50"
           disabled={isFetching}
         >
-          {isFetching ? 'Refreshing…' : 'Refresh'}
+          {isFetching ? t('btn_refreshing') : t('btn_refresh')}
         </button>
       </header>
 
@@ -79,7 +79,7 @@ export function DashboardPage() {
           </p>
         )}
 
-        {isLoading && <p className="text-sm text-zinc-600">Loading receivables…</p>}
+        {isLoading && <p className="text-sm text-zinc-600">{t('loading_receivables')}</p>}
 
         {isError && (
           <p
@@ -105,7 +105,7 @@ export function DashboardPage() {
               }
             />
             <p className="text-xs text-zinc-500">
-              Showing {data.items.length} of {data.meta.total} receivables.
+              {t('showing_x_of_y', { shown: data.items.length, total: data.meta.total })}
             </p>
           </>
         )}
