@@ -105,3 +105,11 @@ Tipos: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`
 - `test(frontend): cover api error wrapping and receivable table rendering`
 - `docs: add PR-012 description and log etapa 10`
 - `Merge PR #12: frontend (operator panel with pricing simulator and receivables grid)`
+
+### Etapa 11 — Docker Compose (`build/docker` → `main`)
+- `build(backend): add multi-stage dockerfile with uv and migration entrypoint`
+- `build(frontend): add multi-stage dockerfile with nginx serving the spa`
+- `build(docker): add nginx config with /api reverse proxy and spa fallback`
+- `build(compose): add end-to-end stack with postgres, backend and frontend`
+- `docs: add PR-013 description and log etapa 11`
+- `Merge PR #13: docker (end-to-end local stack with compose)`
