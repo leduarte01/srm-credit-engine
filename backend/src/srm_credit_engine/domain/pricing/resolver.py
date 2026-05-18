@@ -18,6 +18,7 @@ _DEFAULT_STRATEGIES: tuple[PricingStrategy, ...] = cast(
     (DuplicataMercantilStrategy, ChequePreDatadoStrategy, ContratoUsdStrategy),
 )
 
+
 class PricingStrategyResolver:
     """Registry that maps a product code to its pricing strategy.
 

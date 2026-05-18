@@ -32,9 +32,7 @@ class Settings(BaseSettings):
     api_cors_origins: str = Field(default="http://localhost:5173")
 
     # Database
-    database_url: str = Field(
-        default="postgresql+asyncpg://srm:srm@localhost:5432/srm_credit"
-    )
+    database_url: str = Field(default="postgresql+asyncpg://srm:srm@localhost:5432/srm_credit")
     database_pool_size: int = Field(default=10)
     database_max_overflow: int = Field(default=5)
     database_echo: bool = Field(default=False)

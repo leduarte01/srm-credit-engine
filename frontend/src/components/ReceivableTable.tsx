@@ -1,10 +1,5 @@
 import { useMemo } from 'react';
-import {
-  flexRender,
-  getCoreRowModel,
-  useReactTable,
-  type ColumnDef,
-} from '@tanstack/react-table';
+import { flexRender, getCoreRowModel, useReactTable, type ColumnDef } from '@tanstack/react-table';
 
 import { formatDate, formatMoney } from '../lib/format';
 import type { Receivable } from '../types/domain';

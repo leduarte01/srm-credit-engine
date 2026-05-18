@@ -54,8 +54,7 @@ class PricingService:
     ) -> PricedReceivable:
         if receivable.product_code != product.code:
             raise ValueError(
-                f"Product mismatch: receivable={receivable.product_code} "
-                f"product={product.code}"
+                f"Product mismatch: receivable={receivable.product_code} product={product.code}"
             )
 
         strategy = self._resolver.resolve(receivable.product_code)
@@ -74,9 +73,7 @@ class PricingService:
             product.settlement_currency_code,
             moment,
         )
-        fx_rate = (converted.amount / pricing.present_value.amount).quantize(
-            Decimal("0.000001")
-        )
+        fx_rate = (converted.amount / pricing.present_value.amount).quantize(Decimal("0.000001"))
         return PricedReceivable(
             pricing=pricing,
             settlement_value=converted.quantize(2),

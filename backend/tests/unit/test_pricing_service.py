@@ -104,6 +104,4 @@ async def test_product_mismatch_rejected() -> None:
     )
     receivable = _make_receivable("DUPLICATA_MERCANTIL", "BRL")
     with pytest.raises(ValueError, match="Product mismatch"):
-        await service.price(
-            receivable, product, date(2025, 1, 1), datetime(2025, 1, 1, tzinfo=UTC)
-        )
+        await service.price(receivable, product, date(2025, 1, 1), datetime(2025, 1, 1, tzinfo=UTC))

@@ -133,9 +133,7 @@ async def create_settlement(
     responses={404: {"model": ErrorResponse}},
     summary="Lookup a settlement by id.",
 )
-async def get_settlement(
-    settlement_id: UUID, repo: SettlementRepoDep
-) -> SettlementResponse:
+async def get_settlement(settlement_id: UUID, repo: SettlementRepoDep) -> SettlementResponse:
     settlement = await repo.get_by_id(settlement_id)
     if settlement is None:
         raise SettlementNotFoundError(f"Settlement {settlement_id} not found.")

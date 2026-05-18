@@ -8,7 +8,9 @@ import type {
   Settlement,
 } from '../types/domain';
 
-export async function listReceivables(filters: ReceivableListFilters = {}): Promise<Page<Receivable>> {
+export async function listReceivables(
+  filters: ReceivableListFilters = {},
+): Promise<Page<Receivable>> {
   const params: Record<string, string | number> = {};
   if (filters.assignor_document) params.assignor_document = filters.assignor_document;
   if (filters.product_code) params.product_code = filters.product_code;
