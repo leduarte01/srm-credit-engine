@@ -1,0 +1,37 @@
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info
+.eggs
+.pytest_cache
+.ruff_cache
+.mypy_cache
+.hypothesis
+.coverage
+coverage.xml
+htmlcov
+
+# Virtualenvs
+.venv
+venv
+
+# Editor / OS
+.vscode
+.idea
+.DS_Store
+
+# Local config
+.env
+.env.local
+.env.*.local
+
+# Tests / docs not needed in runtime image
+tests
+docs
+
+# Git
+.git
+.gitignore
