@@ -122,4 +122,17 @@ Tipos: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`
 - `ci(docker): add workflow to build images and validate compose`
 - `chore: add pre-commit config with ruff, prettier and hygiene hooks`
 - `docs: add PR-014 description and log etapa 12`
+- `fix(backend): copy README.md so hatchling can build the wheel during uv sync`
 - `Merge PR #14: ci/cd (github actions + pre-commit)`
+
+### Etapa 13 — Documentação de Arquitetura (`docs/architecture` → `main`)
+- `docs(adr): add ADR-002 hexagonal architecture`
+- `docs(adr): add ADR-003 decimal money as string`
+- `docs(adr): add ADR-004 resilience layering`
+- `docs(adr): add ADR-005 observability stack`
+- `docs(adr): add ADR-006 multi-tenancy posture`
+- `docs(architecture): add c4 context, container and component diagrams`
+- `docs(architecture): add high-scale and eda notes`
+- `docs(architecture): add crisis management runbooks`
+- `docs: add PR-015 description and log etapa 13`
+- `Merge PR #15: architecture documentation (ADRs + C4 + high-scale + EDA + runbooks)`
