@@ -1,4 +1,4 @@
-# PR #17 — Release v1.0.0 + hotfix protocol
+# PR #17 — Release v1.0.0 + hotfix protocol + QA fixes
 
 ## Summary
 Fecha o roadmap do projeto com a entrega da primeira release oficial.
@@ -10,123 +10,98 @@ seis ADRs + C4 + high-scale + EDA + runbooks, README + AI_USAGE).
 Adiciona `docs/HOTFIX_PROTOCOL.md` formalizando — como decorrência
 operacional do **ADR-001 (GitHub Flow + SemVer)** — três variantes
 executáveis de hotfix (A: PR direto, B: revert via PR, C: cherry-pick),
-princípios não-negociáveis (tag SemVer obrigatória, sem
-branch-de-longa-duração, `git revert` precede `git cherry-pick`,
-`main` sempre deployável), um **worked example** com cenário fictício
-realista de recuperação de cobertura, checklist pós-hotfix,
-anti-padrões proibidos e protocolo de comunicação durante o incidente.
-Atualiza `docs/PLAN.md` marcando todas as etapas 5–15 como completas e
+princípios não-negociáveis, receita pedagógica explicitamente marcada
+como **não aplicada** ao histórico, checklist pós-hotfix, anti-padrões
+proibidos e protocolo de comunicação durante o incidente. Cria
+`docs/acceptance-criteria.md` consolidando os critérios de aceite do
+case (usabilidade, segurança, desempenho, escalabilidade) com 20+ regras
+testáveis e suas evidências no código. Move `AI_USAGE.md` para a raiz
+do repositório (conforme o case spec §2). Atualiza
+`docs/adr/ADR-006-multi-tenancy.md` para deixar explícito que a coluna
+`tenant_id` **ainda não** existe no schema v1. Adiciona descrição
+retroativa do PR-004 (lint + lockfile + preservação do case spec).
+Atualiza `docs/PLAN.md` marcando todas as etapas como completas e
 registra a Etapa 15 em `docs/COMMITS.md`. **Sem código de produção
 alterado** — apenas governança de release e documentação operacional.
 
 ## Scope
-- `CHANGELOG.md` (raiz, novo) — formato Keep a Changelog 1.1.0:
-  - Seção `[Unreleased]` vazia (template para mudanças futuras).
-  - Seção `[1.0.0] — 2026-05-18 — Added` agrupada por área:
-    - **Backend** (FastAPI app, domínio hexagonal, Strategy de
-      pricing, repositórios SQLAlchemy 2.0 async + Alembic,
-      Currency Engine com cache→breaker→retry, structlog +
-      OTel + Prometheus, exception handler global,
-      `ApiClientError` envelope, decimal-string monetário).
-    - **Frontend** (Painel do Operador, Grid de Transações com
-      TanStack Table, TanStack Query + axios, decimal.js no
-      boundary, Zustand 5, Tailwind v4 inline).
-    - **Orquestração e operação** (docker-compose com 4 serviços,
-      multi-stage images backend/frontend/nginx, healthchecks,
-      volumes nomeados).
-    - **CI/CD** (workflows `backend.yml`, `frontend.yml`,
-      `docker.yml` com path filters; pre-commit; ruff/mypy
-      strict/pytest cov ≥ 80%; prettier/eslint/tsc/vitest/vite
-      build; docker/build-push-action@v6 + GHA cache).
-    - **Documentação** (6 ADRs imutáveis, C4 contexto/container/
-      componente, high-scale, EDA, 5 runbooks, README final,
-      AI_USAGE).
-    - **Versionamento** (tag anotada `v1.0.0`).
-  - Seção `### Quality gates atendidos` (cobertura, mypy strict,
-    pre-commit, CI verde).
-  - Seção `### Referências` (links para ADRs, runbooks e PLAN).
-  - Rodapé com links de comparação:
-    `[Unreleased]: .../compare/v1.0.0...HEAD` e
-    `[1.0.0]: .../releases/tag/v1.0.0`.
-- `docs/HOTFIX_PROTOCOL.md` (novo) — protocolo operacional:
-  - **Quando usar** (P0/P1, ≤ 100 linhas, ≤ 3 arquivos típicos).
-  - **Princípios** (5: `main` sempre deployável, tag SemVer
-    obrigatória, sem branch-de-longa-duração, `git revert` precede
-    `git cherry-pick`, tudo documentado).
-  - **Variantes** A (hotfix simples via PR), B (revert via PR
-    quando commit ruim já está em `main`), C (cherry-pick quando
-    fix já existe em outra branch) — cada uma com comandos `git`
-    executáveis completos.
-  - **Worked example** simulado: cenário fictício de "cobertura
-    quebrada após remoção de teste" com tag `v1.0.0 → v1.0.1`,
-    comandos do checkout até o `git push origin v1.0.1`.
-  - **Checklist pós-hotfix** (tag, CHANGELOG, pós-mortem, teste de
-    regressão, métrica/alerta, follow-up para branches longas).
-  - **Anti-padrões proibidos** (tag sem PR, force-push, rebase em
-    commit mergeado, `--no-verify`, hotfix sem teste).
-  - **Comunicação durante o incidente** (tabela momento × canal ×
-    conteúdo: início, PR aberto, merge, deploy, pós-mortem).
-- `docs/PLAN.md` — etapas 5 a 15 marcadas como ✅ na tabela de
-  status (todas as etapas do roadmap concluídas).
-- `docs/COMMITS.md` — registra a Etapa 15.
+- `CHANGELOG.md` (raiz, novo) — Keep a Changelog 1.1.0 com entrada
+  `[1.0.0] — 2026-05-18` agrupada por área (Backend, Frontend,
+  Orquestração, CI/CD, Documentação, Versionamento) + seção de
+  Quality Gates + Referências + rodapé com links de comparação.
+- `docs/HOTFIX_PROTOCOL.md` (novo) — Quando usar (P0/P1), 5
+  Princípios, Variantes A/B/C com comandos `git` executáveis,
+  Worked example **pedagógico** com alerta visual de que **não foi
+  executado** no repo, Checklist pós-hotfix, Anti-padrões
+  proibidos, tabela de Comunicação durante o incidente.
+- `docs/acceptance-criteria.md` (novo) — critérios de aceite
+  consolidados do case spec §5.2, organizados em quatro grupos
+  (usabilidade, segurança, desempenho, escalabilidade) com 20+
+  regras Dado/Quando/Então testáveis, marcação ✅ / ☑ / 🛈 e
+  evidência por arquivo/teste; inclui seção explícita de "fora de
+  escopo para v1.0.0".
+- `AI_USAGE.md` (movido para raiz) — conforme case spec §2;
+  conteúdo inalterado.
+- `docs/adr/ADR-006-multi-tenancy.md` — bloco "Status atual"
+  reescrito para deixar explícito que `tenant_id` **não está** no
+  schema versionado em `V1__init.sql`; preparação é arquitetural
+  (ports/adapters desacoplados), não física.
+- `docs/pull-requests/PR-004-lint-and-lockfile.md` (novo
+  retroativo) — fecha trilha de auditoria do diretório.
+- `docs/PLAN.md` — etapas 5 a 15 ✅ (roadmap concluído).
+- `docs/COMMITS.md` — Etapa 15 registrada com todos os commits.
+- `README.md` — links atualizados para `AI_USAGE.md` na raiz e para
+  `docs/acceptance-criteria.md`; árvore do repositório
+  re-renderizada.
 
 ## Architectural notes
-- O `CHANGELOG.md` é **canônico**: substitui o ato de inspecionar
-  PRs no GitHub como fonte oficial das mudanças. Entradas futuras
-  acumulam em `[Unreleased]` e são promovidas para uma seção
-  versionada a cada release — fluxo recomendado pelo Keep a
-  Changelog.
-- O `HOTFIX_PROTOCOL` **formaliza** o que o ADR-001 deixou em
-  princípios: as três variantes (A/B/C) cobrem 100% dos cenários
-  realistas sem precisar reintroduzir branches `release/*` ou
-  `hotfix/*` de longa duração — a única branch criada vive o
-  tempo da correção e some no merge.
-- A simulação no worked example é **realista mas inofensiva**: usa
-  um cenário fictício (cobertura quebrada) em vez de tocar em
-  código de produção real, preservando a tag `v1.0.0` como release
-  limpa enquanto demonstra `git revert`/`cherry-pick`.
-- A entrada `[1.0.0]` agrupa por **área funcional** em vez de
-  cronologicamente — facilita auditoria ("o que tem de
-  observabilidade?") e revisão arquitetural sem precisar reler 16
-  PRs.
-- Todos os links no CHANGELOG e no HOTFIX_PROTOCOL são internos
-  (paths relativos) ou apontam para documentação oficial pública —
-  nenhuma URL é gerada/inventada.
+- O `CHANGELOG.md` é **canônico**: substitui inspeção de PRs no
+  GitHub como fonte oficial das mudanças. `[Unreleased]` acumula
+  mudanças futuras.
+- O `HOTFIX_PROTOCOL` **formaliza** o ADR-001 em receitas
+  executáveis. As três variantes cobrem 100% dos cenários reais
+  sem reintroduzir branches `release/*` ou `hotfix/*` de longa
+  duração. O worked example é **explicitamente** marcado como
+  pedagógico — para ver o protocolo aplicado de verdade, basta
+  inspecionar tags `v1.0.1+` quando existirem.
+- O documento de **critérios de aceite** atende §5.2 do case spec
+  e amarra cada critério a uma evidência verificável; é o contrato
+  testável entre o produto e a engenharia.
+- O ADR-006 honesto evita **alucinação documental**: declarar
+  preparação física que não existe seria propaganda; declarar a
+  preparação como arquitetural (e nada mais) é auditável.
+- `AI_USAGE.md` na raiz alinha com a leitura literal do case spec
+  ("inclua um arquivo `AI_USAGE.md` no repositório").
 
 ## Testing
-- N/A — PR de documentação e governança de release. Workflows
-  existentes (`backend.yml`, `frontend.yml`, `docker.yml`) devem
-  ficar verdes sem alteração.
-- Pre-commit roda nos novos arquivos (hooks de hygiene: EOL,
-  trailing-whitespace, large files).
+- N/A — PR de documentação e governança. Workflows existentes
+  (`backend.yml`, `frontend.yml`, `docker.yml`) devem ficar verdes
+  sem alteração.
+- Pre-commit roda nos novos arquivos (EOL, trailing-whitespace,
+  large files).
 - Validação visual: tabelas, listas, blocos de código e links
-  internos do `CHANGELOG.md` e `HOTFIX_PROTOCOL.md` renderizam
-  corretamente no preview do GitHub.
+  internos renderizam corretamente no preview do GitHub.
 
 ## Risks & Mitigations
-- **CHANGELOG drift** — em releases futuras, mudanças podem ser
-  esquecidas de registrar. Mitigação: seção `[Unreleased]` existe
-  desde já como template; convenção (a ser reforçada em revisões)
-  de atualizar `[Unreleased]` no mesmo PR da mudança.
-- **HOTFIX_PROTOCOL pode envelhecer** se a branching strategy do
-  ADR-001 mudar. Mitigação: o protocolo referencia o ADR-001
-  explicitamente; qualquer mudança no ADR força revisão do
-  protocolo (encadeamento auditável).
-- **Worked example pode ser confundido com mudança real** —
-  alguém lendo a história git pode buscar o cenário descrito.
-  Mitigação: o documento marca explicitamente o cenário como
-  "fictício realista usado como demonstração", e nenhum commit é
-  efetivamente criado pelo exemplo.
+- **CHANGELOG drift** — mudanças futuras podem não ser registradas.
+  Mitigação: seção `[Unreleased]` existe como template; convenção
+  de atualizar no mesmo PR da mudança.
+- **HOTFIX_PROTOCOL envelhecer** se ADR-001 mudar. Mitigação: o
+  protocolo referencia o ADR-001 explicitamente; mudança no ADR
+  força revisão (encadeamento auditável).
+- **Critérios de aceite virarem documento morto** — risco
+  comum. Mitigação: critérios marcados ✅ estão amarrados a testes
+  automatizados; mudança neles obriga atualizar o documento.
+- **Worked example confundido com mudança real**. Mitigação:
+  bloco de alerta visual no topo da seção + linguagem revisada
+  ("receita pedagógica (não executada)").
 
 ## Out of Scope
-- Tag anotada `v1.0.0` em si — será criada **após o merge** deste
-  PR em `main`, com `git tag -a v1.0.0` + `git push origin v1.0.0`
-  (comandos fornecidos ao operador no encerramento da etapa).
-- Execução real de um hotfix — o protocolo descreve e demonstra;
-  a execução só ocorre se um incidente real surgir.
-- Automação de bump de versão (ferramenta tipo `release-please` ou
-  `semantic-release`) — fica como possível follow-up; por ora a
-  release é manual e auditável.
-- Publicação de imagens Docker com a tag SemVer em um registry
-  público — out of scope deste PR; o workflow `docker.yml` faz
-  build mas não push para registry externo.
+- Tag anotada `v1.0.0` — criada **após** o merge deste PR via
+  `git tag -a v1.0.0` + `git push origin v1.0.0`.
+- Execução real de hotfix (futura tag `v1.0.1`) — fluxo separado
+  pós-release.
+- Implementação física de `tenant_id` no schema — ADR de
+  seguimento + migração `alembic` dedicada.
+- Automação de bump de versão (`release-please`/`semantic-release`).
+- Push de imagens Docker para registry público.

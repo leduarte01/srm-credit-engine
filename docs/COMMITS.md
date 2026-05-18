@@ -149,5 +149,11 @@ Tipos: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`
 - `docs: add HOTFIX_PROTOCOL with three variants and worked example`
 - `docs: mark all roadmap stages complete in PLAN`
 - `docs: add PR-017 description and log etapa 15`
-- `Merge PR #17: release v1.0.0 + hotfix protocol`
+- `docs: add acceptance criteria covering usability/security/perf/scale`
+- `docs(hotfix): clarify worked example is pedagogical and not applied`
+- `docs(ai): move AI_USAGE.md to repository root per case spec`
+- `docs(adr-006): clarify tenant_id column not yet present in schema`
+- `docs: add retroactive PR-004 description for lint/lockfile hotfix`
+- `docs: update PR-017 description with QA fixes`
+- `Merge PR #17: release v1.0.0 + hotfix protocol + QA fixes`
 - `release: tag v1.0.0` _(tag anotada em main após o merge)_
