@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import {
   cancelReceivable,
@@ -11,6 +11,7 @@ import type {
   PricingSimulateResponse,
   Receivable,
   ReceivableListFilters,
+  ReceivableStatus,
   Settlement,
 } from '../types/domain';
 
@@ -49,4 +50,20 @@ export function useCancelReceivable() {
       void qc.invalidateQueries({ queryKey: ['receivables'] });
     },
   });
+}
+
+const STAT_STATUSES = ['PENDING', 'SETTLED', 'CANCELLED'] as const;
+
+export function useReceivableStats() {
+  const results = useQueries({
+    queries: STAT_STATUSES.map((status: ReceivableStatus) => ({
+      queryKey: ['receivables', { status, limit: 1, offset: 0 }],
+      queryFn: () => listReceivables({ status, limit: 1, offset: 0 }),
+    })),
+  });
+  return {
+    pending: results[0],
+    settled: results[1],
+    cancelled: results[2],
+  };
 }
