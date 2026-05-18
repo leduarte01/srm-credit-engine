@@ -105,10 +105,13 @@ README final e tag de release.
   ([runbooks/](docs/architecture/runbooks/)): FX outage, DB outage,
   latency spike, migration failure e tenant leak.
 - `README.md` da raiz como ponto de entrada de produção e
-  `docs/AI_USAGE.md` documentando o uso de IA com salvaguardas e
+  `AI_USAGE.md` (raiz) documentando o uso de IA com salvaguardas e
   limitações.
-- Protocolo de hotfix com exemplo aplicado em
+- Protocolo de hotfix com receita pedagógica em
   [docs/HOTFIX_PROTOCOL.md](docs/HOTFIX_PROTOCOL.md).
+- Critérios de aceite consolidados em
+  [docs/acceptance-criteria.md](docs/acceptance-criteria.md)
+  cobrindo usabilidade, segurança, desempenho e escalabilidade.
 
 #### Versionamento
 - Tag anotada `v1.0.0` em `main`.
