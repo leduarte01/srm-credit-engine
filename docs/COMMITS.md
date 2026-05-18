@@ -143,3 +143,11 @@ Tipos: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`
 - `docs: add AI_USAGE describing how AI tooling was used`
 - `docs: add PR-016 description and log etapa 14`
 - `Merge PR #16: final README + AI_USAGE`
+
+### Etapa 15 — Release v1.0.0 + hotfix protocol (`release/v1.0.0` → `main`)
+- `docs(release): add CHANGELOG following keep-a-changelog with v1.0.0 entry`
+- `docs: add HOTFIX_PROTOCOL with three variants and worked example`
+- `docs: mark all roadmap stages complete in PLAN`
+- `docs: add PR-017 description and log etapa 15`
+- `Merge PR #17: release v1.0.0 + hotfix protocol`
+- `release: tag v1.0.0` _(tag anotada em main após o merge)_
