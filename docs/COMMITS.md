@@ -136,3 +136,10 @@ Tipos: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`
 - `docs(architecture): add crisis management runbooks`
 - `docs: add PR-015 description and log etapa 13`
 - `Merge PR #15: architecture documentation (ADRs + C4 + high-scale + EDA + runbooks)`
+
+### Etapa 14 — README final + AI_USAGE (`docs/readme-final` → `main`)
+- `docs: rewrite root README as production-grade entry point`
+- `docs(frontend): replace Vite template README with project-specific content`
+- `docs: add AI_USAGE describing how AI tooling was used`
+- `docs: add PR-016 description and log etapa 14`
+- `Merge PR #16: final README + AI_USAGE`
