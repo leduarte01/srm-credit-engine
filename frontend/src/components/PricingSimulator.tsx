@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 
 import { ApiClientError } from '../api/client';
+import { useI18n } from '../hooks/useI18n';
 import { useSimulatePricing } from '../hooks/queries';
 import { formatMoney, formatRatePercent } from '../lib/format';
 import type { PricingSimulateRequest } from '../types/domain';
@@ -13,6 +14,7 @@ const addDays = (iso: string, days: number): string => {
 };
 
 export function PricingSimulator() {
+  const { t } = useI18n();
   const [productCode, setProductCode] = useState('DUPL');
   const [amount, setAmount] = useState('10000.00');
   const [currency, setCurrency] = useState('BRL');
@@ -35,14 +37,12 @@ export function PricingSimulator() {
   return (
     <section className="rounded-lg border border-zinc-200 bg-white p-5 shadow-sm">
       <header className="mb-4 flex items-baseline justify-between">
-        <h2 className="text-base font-semibold text-zinc-900">Pricing simulator</h2>
-        <p className="text-xs text-zinc-500">
-          Computes present value, settlement value and applied rate without persisting.
-        </p>
+        <h2 className="text-base font-semibold text-zinc-900">{t('sim_title')}</h2>
+        <p className="text-xs text-zinc-500">{t('sim_subtitle')}</p>
       </header>
 
       <form className="grid grid-cols-1 gap-3 sm:grid-cols-2" onSubmit={onSubmit}>
-        <Field label="Product code">
+        <Field label={t('sim_product_code')}>
           <input
             value={productCode}
             onChange={(e) => setProductCode(e.target.value)}
@@ -50,7 +50,7 @@ export function PricingSimulator() {
             className={inputClass}
           />
         </Field>
-        <Field label="Currency">
+        <Field label={t('sim_currency')}>
           <input
             value={currency}
             maxLength={3}
@@ -59,7 +59,7 @@ export function PricingSimulator() {
             className={inputClass}
           />
         </Field>
-        <Field label="Face value">
+        <Field label={t('sim_face_value')}>
           <input
             value={amount}
             inputMode="decimal"
@@ -68,7 +68,7 @@ export function PricingSimulator() {
             className={inputClass}
           />
         </Field>
-        <Field label="Issue date">
+        <Field label={t('sim_issue_date')}>
           <input
             type="date"
             value={issueDate}
@@ -77,7 +77,7 @@ export function PricingSimulator() {
             className={inputClass}
           />
         </Field>
-        <Field label="Due date">
+        <Field label={t('sim_due_date')}>
           <input
             type="date"
             value={dueDate}
@@ -87,13 +87,13 @@ export function PricingSimulator() {
           />
         </Field>
 
-        <div className="sm:col-span-2 mt-2 flex justify-end">
+        <div className="mt-2 flex justify-end sm:col-span-2">
           <button
             type="submit"
             disabled={mutation.isPending}
             className="inline-flex items-center rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-50"
           >
-            {mutation.isPending ? 'Simulating…' : 'Simulate'}
+            {mutation.isPending ? t('sim_btn_simulating') : t('sim_btn_simulate')}
           </button>
         </div>
       </form>
@@ -112,31 +112,31 @@ export function PricingSimulator() {
       {mutation.data && (
         <dl className="mt-5 grid grid-cols-2 gap-3 rounded-md bg-zinc-50 p-4 text-sm sm:grid-cols-3">
           <Stat
-            label="Present value"
+            label={t('sim_present_value')}
             value={formatMoney(
               mutation.data.present_value.amount,
               mutation.data.present_value.currency,
             )}
           />
           <Stat
-            label="Settlement value"
+            label={t('sim_settlement_value')}
             value={formatMoney(
               mutation.data.settlement_value.amount,
               mutation.data.settlement_value.currency,
             )}
           />
           <Stat
-            label="Effective rate / month"
+            label={t('sim_eff_rate')}
             value={formatRatePercent(mutation.data.effective_monthly_rate)}
           />
           <Stat
-            label="Base rate / month"
+            label={t('sim_base_rate')}
             value={formatRatePercent(mutation.data.base_rate_monthly)}
           />
-          <Stat label="Spread / month" value={formatRatePercent(mutation.data.spread_monthly)} />
-          <Stat label="Term (months)" value={Number(mutation.data.term_months).toFixed(4)} />
+          <Stat label={t('sim_spread')} value={formatRatePercent(mutation.data.spread_monthly)} />
+          <Stat label={t('sim_term')} value={Number(mutation.data.term_months).toFixed(4)} />
           {mutation.data.fx_rate_applied && (
-            <Stat label="FX applied" value={mutation.data.fx_rate_applied} />
+            <Stat label={t('sim_fx')} value={mutation.data.fx_rate_applied} />
           )}
         </dl>
       )}

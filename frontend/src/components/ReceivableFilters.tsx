@@ -1,9 +1,11 @@
+import { useI18n } from '../hooks/useI18n';
 import { useUiStore } from '../store/uiStore';
 import type { ReceivableStatus } from '../types/domain';
 
 const STATUSES: ReceivableStatus[] = ['PENDING', 'SETTLED', 'CANCELLED'];
 
 export function ReceivableFilters() {
+  const { t } = useI18n();
   const filters = useUiStore((s) => s.filters);
   const setFilter = useUiStore((s) => s.setFilter);
   const setStatus = useUiStore((s) => s.setStatus);
@@ -11,22 +13,22 @@ export function ReceivableFilters() {
 
   return (
     <div className="flex flex-wrap items-end gap-3 rounded-lg border border-zinc-200 bg-white p-4 shadow-sm">
-      <Field label="Assignor (document)">
+      <Field label={t('filter_assignor')}>
         <input
           value={filters.assignor_document ?? ''}
           onChange={(e) => setFilter('assignor_document', e.target.value || undefined)}
-          placeholder="Only digits"
+          placeholder={t('filter_assignor_placeholder')}
           className={inputClass}
         />
       </Field>
-      <Field label="Product">
+      <Field label={t('filter_product')}>
         <input
           value={filters.product_code ?? ''}
           onChange={(e) => setFilter('product_code', e.target.value || undefined)}
           className={inputClass}
         />
       </Field>
-      <Field label="Currency">
+      <Field label={t('filter_currency')}>
         <input
           value={filters.currency ?? ''}
           maxLength={3}
@@ -34,13 +36,13 @@ export function ReceivableFilters() {
           className={inputClass}
         />
       </Field>
-      <Field label="Status">
+      <Field label={t('filter_status')}>
         <select
           value={filters.status ?? ''}
           onChange={(e) => setStatus((e.target.value || undefined) as ReceivableStatus | undefined)}
           className={inputClass}
         >
-          <option value="">Any</option>
+          <option value="">{t('filter_status_any')}</option>
           {STATUSES.map((s) => (
             <option key={s} value={s}>
               {s}
@@ -53,7 +55,7 @@ export function ReceivableFilters() {
         onClick={reset}
         className="ml-auto inline-flex items-center rounded-md bg-zinc-100 px-3 py-1.5 text-xs font-medium text-zinc-700 ring-1 ring-inset ring-zinc-300 hover:bg-zinc-200"
       >
-        Reset
+        {t('filter_reset')}
       </button>
     </div>
   );
