@@ -54,10 +54,15 @@ depth_.
 
 ## Decisão
 
-> **Status atual:** Arquitetura **single-tenant em produção** com o
-> modelo preparado para escalar para multi-tenant via `tenant_id` em
-> todas as tabelas. RLS será ativada no momento do onboarding do segundo
-> tenant.
+> **Status atual (v1.0.0):** Arquitetura **single-tenant em produção**.
+> O esquema versionado em [V1__init.sql](../../db/migrations/V1__init.sql)
+> **ainda não inclui a coluna `tenant_id`** — a "preparação" descrita
+> aqui é a **postura arquitetural** (ports/adapters desacoplados,
+> repositórios isolados por interface, código sem lógica embutida que
+> dificultaria a migração), não um schema fisicamente pronto. A
+> introdução de `tenant_id` em todas as tabelas, dos índices compostos
+> e da RLS será o **primeiro passo** do onboarding do segundo tenant e
+> exigirá uma migração `alembic` dedicada + um ADR de seguimento.
 
 ### Princípios
 

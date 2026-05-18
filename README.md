@@ -175,11 +175,14 @@ SRM/
 │   ├── ER.md                    # modelo entidade-relacionamento
 │   ├── adr/                     # Architecture Decision Records (001–006)
 │   ├── architecture/            # C4 + high-scale + EDA + runbooks
-│   ├── pull-requests/           # corpo dos PRs (PR-001…015)
-│   └── AI_USAGE.md              # uso de IA no desenvolvimento
+│   ├── pull-requests/           # corpo dos PRs (PR-001…017)
+│   ├── HOTFIX_PROTOCOL.md       # protocolo operacional de hotfix
+│   └── acceptance-criteria.md   # critérios de aceite do produto
 ├── .github/workflows/           # backend, frontend, docker (CI)
 ├── .pre-commit-config.yaml
 ├── docker-compose.yml
+├── CHANGELOG.md                 # Keep a Changelog 1.1.0
+├── AI_USAGE.md                  # uso de IA no desenvolvimento
 └── README.md                    # este arquivo
 ```
 
@@ -264,6 +267,10 @@ Runbooks em [docs/architecture/runbooks/](docs/architecture/runbooks/):
 - **Migration failure** — alembic falhou em produção (P1).
 - **Tenant leak** — suspeita de vazamento cross-tenant (P0).
 
+Protocolo de hotfix (revert / cherry-pick) em
+[docs/HOTFIX_PROTOCOL.md](docs/HOTFIX_PROTOCOL.md). Critérios de aceite
+do produto em [docs/acceptance-criteria.md](docs/acceptance-criteria.md).
+
 ---
 
 ## Versionamento e releases
@@ -281,7 +288,7 @@ Runbooks em [docs/architecture/runbooks/](docs/architecture/runbooks/):
 Este projeto foi desenvolvido com **assistência de IA** (Copilot Chat /
 modelos de linguagem). Toda a metodologia — o que foi delegado, o que foi
 revisado e como o output foi auditado — está descrita em
-[docs/AI_USAGE.md](docs/AI_USAGE.md).
+[AI_USAGE.md](AI_USAGE.md).
 
 ---
 

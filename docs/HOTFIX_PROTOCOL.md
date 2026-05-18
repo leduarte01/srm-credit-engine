@@ -118,7 +118,14 @@ git push origin v1.0.1
 > direto (variante A) e, depois, cherry-pick o mesmo commit para a
 > branch de feature em andamento.
 
-## Worked example — simulação aplicada neste repositório
+## Worked example — receita pedagógica (não executada)
+
+> ⚠️ **Esta seção é demonstração**, não um registro histórico. Os
+> comandos abaixo **não foram aplicados** ao repositório — servem
+> como roteiro reproduzível que um operador segue quando um
+> incidente real acontecer. Para ver o protocolo aplicado de
+> verdade, consulte o histórico git em torno das tags `v1.0.1` ou
+> superiores, **se** elas existirem.
 
 Cenário fictício realista usado como demonstração do protocolo:
 
@@ -127,7 +134,7 @@ Cenário fictício realista usado como demonstração do protocolo:
 > teste foi removido sem cobertura compensatória. A correção exige
 > aumentar a cobertura — não relaxar o gate."
 
-### Passo a passo executado
+### Passo a passo (template)
 
 ```bash
 # 1. Estado inicial — main na tag v1.0.0
@@ -138,7 +145,7 @@ git describe --tags --abbrev=0     # → v1.0.0
 # 2. Branch de hotfix
 git checkout -b hotfix/v1.0.1-coverage-restore
 
-# 3. Adicionar testes que recuperam a cobertura (commits reais)
+# 3. Adicionar testes que recuperam a cobertura
 git add backend/tests/unit/test_pricing_invariants.py
 git commit -m "fix(tests): restore coverage gate by adding missing pricing invariants"
 
@@ -155,8 +162,11 @@ git push origin v1.0.1
 #   commit segue como parte do próximo PR de manutenção
 ```
 
-> Esta simulação fica preservada na história do repo: tag `v1.0.0`
-> imediatamente seguida da tag `v1.0.1` no commit subsequente.
+> Quando um hotfix **real** for executado seguindo este protocolo,
+> a tag SemVer subsequente (`v1.0.1`, `v1.0.2`, …) e o commit de
+> revert/cherry-pick correspondente ficarão preservados na história
+> git, e esta seção pode ser referenciada como o procedimento
+> seguido.
 
 ## Pós-hotfix — checklist obrigatório
 
