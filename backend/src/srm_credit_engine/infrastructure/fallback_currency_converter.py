@@ -24,9 +24,17 @@ from srm_credit_engine.domain.value_objects.money import Money
 class FallbackCurrencyConverter:
     """Try *primary*; on :class:`ExchangeRateNotFoundError`, try *secondary*."""
 
-    def __init__(self, primary: CurrencyConverter, secondary: CurrencyConverter) -> None:
+    def __init__(
+        self,
+        primary: CurrencyConverter,
+        secondary: CurrencyConverter,
+        primary_label: Literal["database", "live"] = "database",
+        secondary_label: Literal["database", "live"] = "live",
+    ) -> None:
         self._primary = primary
         self._secondary = secondary
+        self._primary_label = primary_label
+        self._secondary_label = secondary_label
         self.last_source: Literal["database", "live"] | None = None
 
     async def convert(self, amount: Money, target_currency: str, at: datetime) -> Money:
@@ -36,9 +44,9 @@ class FallbackCurrencyConverter:
 
         try:
             result = await self._primary.convert(amount, target_currency, at)
-            self.last_source = "database"
+            self.last_source = self._primary_label
             return result
         except ExchangeRateNotFoundError:
             result = await self._secondary.convert(amount, target_currency, at)
-            self.last_source = "live"
+            self.last_source = self._secondary_label
             return result
