@@ -1,10 +1,16 @@
-"""Live FX rate adapter — fetches real-time quotes from AwesomeAPI (BR).
+"""Live FX rate adapter — fetches real-time quotes from fawazahmed0/exchange-api.
 
-End-point used: https://economia.awesomeapi.com.br/json/last/{BASE}-{QUOTE}
-No authentication required. Free tier, no rate limit for low volume.
+End-point used (CDN, no auth required, no rate limit):
+  https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/{base}.json
 
-Rates are cached in-process for ``_CACHE_TTL_SECONDS`` to avoid hitting the
-free-tier rate limit (HTTP 429) on repeated simulator calls.
+Fallback mirror (Cloudflare Pages):
+  https://latest.currency-api.pages.dev/v1/currencies/{base}.json
+
+Response shape:
+  { "date": "2026-05-19", "{base}": { "{quote}": 0.1234, ... } }
+
+Rates are cached in-process for ``_CACHE_TTL_SECONDS`` to avoid redundant
+CDN requests when the simulator is called multiple times in quick succession.
 """
 
 from __future__ import annotations
@@ -12,6 +18,7 @@ from __future__ import annotations
 import time
 from datetime import datetime
 from decimal import Decimal
+from typing import Any
 
 import httpx
 
@@ -19,8 +26,11 @@ from srm_credit_engine.domain.exceptions import ExchangeRateNotFoundError
 from srm_credit_engine.domain.value_objects.money import Money
 from srm_credit_engine.observability.metrics import FX_LOOKUPS
 
-_AWESOMEAPI_URL = "https://economia.awesomeapi.com.br/json/last/{base}-{quote}"
-_TIMEOUT_SECONDS = 5.0
+_PRIMARY_URL = (
+    "https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/{base}.json"
+)
+_FALLBACK_URL = "https://latest.currency-api.pages.dev/v1/currencies/{base}.json"
+_TIMEOUT_SECONDS = 8.0
 _CACHE_TTL_SECONDS = 60.0
 
 # Module-level cache: { "BASE-QUOTE": (rate, fetched_at_monotonic) }
@@ -28,13 +38,13 @@ _rate_cache: dict[str, tuple[Decimal, float]] = {}
 
 
 class LiveRateCurrencyConverter:
-    """Fetches real-time FX rates from AwesomeAPI with a 60-second in-process cache.
+    """Fetches real-time FX rates from fawazahmed0/exchange-api (no auth, no rate limit).
 
-    The cache prevents HTTP 429 (Too Many Requests) errors on the free tier
-    when the simulator is called in quick succession.
+    Uses jsDelivr CDN as primary and Cloudflare Pages as fallback mirror.
+    Rates are cached in-process for 60 seconds.
 
     Raises :class:`ExchangeRateNotFoundError` when the pair is unsupported or
-    the external API is unreachable, so callers can handle it uniformly.
+    both mirrors are unreachable, so callers can handle it uniformly.
     """
 
     async def convert(self, amount: Money, target_currency: str, at: datetime) -> Money:  # noqa: ARG002
@@ -53,71 +63,35 @@ class LiveRateCurrencyConverter:
             if time.monotonic() - fetched_at < _CACHE_TTL_SECONDS:
                 return rate
 
-        url = _AWESOMEAPI_URL.format(base=base.upper(), quote=quote.upper())
-        pair_key = f"{base.upper()}{quote.upper()}"
-        try:
-            async with httpx.AsyncClient(timeout=_TIMEOUT_SECONDS) as client:
-                response = await client.get(url)
-                response.raise_for_status()
-                data = response.json()
-        except Exception as exc:
-            # Try inverse pair
-            try:
-                return await self._fetch_rate_inverse(base, quote)
-            except Exception:
-                raise ExchangeRateNotFoundError(
-                    f"Live FX rate unavailable for {base}->{quote}: {exc}"
-                ) from exc
+        base_lower = base.lower()
+        quote_lower = quote.lower()
 
-        if pair_key not in data:
-            try:
-                return await self._fetch_rate_inverse(base, quote)
-            except Exception:
-                raise ExchangeRateNotFoundError(
-                    f"Pair {base}->{quote} not found in AwesomeAPI response."
-                ) from None
+        data = await self._fetch_base_rates(base_lower)
 
-        bid = data[pair_key].get("bid") or data[pair_key].get("ask")
-        if bid is None:
+        rates = data.get(base_lower)
+        if rates is None or quote_lower not in rates:
             raise ExchangeRateNotFoundError(
-                f"No bid/ask price in AwesomeAPI response for {base}->{quote}."
+                f"Pair {base.upper()}->{quote.upper()} not found in exchange-api response."
             )
-        rate = Decimal(str(bid))
+
+        rate = Decimal(str(rates[quote_lower]))
         _rate_cache[cache_key] = (rate, time.monotonic())
         return rate
 
-    async def _fetch_rate_inverse(self, base: str, quote: str) -> Decimal:
-        """Fallback: fetch quote->base and invert."""
-        cache_key = f"{base.upper()}-{quote.upper()}"
-        cached = _rate_cache.get(cache_key)
-        if cached is not None:
-            rate, fetched_at = cached
-            if time.monotonic() - fetched_at < _CACHE_TTL_SECONDS:
-                return rate
+    async def _fetch_base_rates(self, base_lower: str) -> dict[str, Any]:
+        """Fetch all rates for *base* currency, trying primary then fallback mirror."""
+        last_exc: Exception | None = None
 
-        url = _AWESOMEAPI_URL.format(base=quote.upper(), quote=base.upper())
-        pair_key = f"{quote.upper()}{base.upper()}"
-        try:
-            async with httpx.AsyncClient(timeout=_TIMEOUT_SECONDS) as client:
-                response = await client.get(url)
-                response.raise_for_status()
-                data = response.json()
-        except ExchangeRateNotFoundError:
-            raise
-        except Exception as exc:
-            raise ExchangeRateNotFoundError(
-                f"Live FX rate unavailable for inverse pair {quote}->{base}: {exc}"
-            ) from exc
+        for url_template in (_PRIMARY_URL, _FALLBACK_URL):
+            url = url_template.format(base=base_lower)
+            try:
+                async with httpx.AsyncClient(timeout=_TIMEOUT_SECONDS) as client:
+                    response = await client.get(url)
+                    response.raise_for_status()
+                    return response.json()  # type: ignore[no-any-return]
+            except Exception as exc:
+                last_exc = exc
 
-        if pair_key not in data:
-            raise ExchangeRateNotFoundError(
-                f"Pair {quote}->{base} not found in AwesomeAPI response."
-            )
-        bid = data[pair_key].get("bid") or data[pair_key].get("ask")
-        if bid is None:
-            raise ExchangeRateNotFoundError(
-                f"No bid/ask price in AwesomeAPI inverse response for {quote}->{base}."
-            )
-        rate = Decimal("1") / Decimal(str(bid))
-        _rate_cache[cache_key] = (rate, time.monotonic())
-        return rate
+        raise ExchangeRateNotFoundError(
+            f"Live FX rate unavailable for base currency '{base_lower}': {last_exc}"
+        ) from last_exc

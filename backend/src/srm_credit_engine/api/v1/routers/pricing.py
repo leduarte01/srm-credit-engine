@@ -48,16 +48,26 @@ async def simulate(
         raise ProductTypeNotFoundError(f"Product type {payload.product_code} not found.")
 
     # Build converter based on user preference.
+    # Both paths use FallbackCurrencyConverter so a transient live-API failure
+    # (e.g. HTTP 429 on the free tier) never surfaces as an error to the user.
     live = LiveRateCurrencyConverter()
     if payload.use_live_rate:
-        converter = ResilientCurrencyConverter(live)
-        fallback: FallbackCurrencyConverter | None = None
+        # Prefer live rate; fall back to DB when the external API is unavailable.
+        fallback = FallbackCurrencyConverter(
+            primary=live,
+            secondary=DatabaseCurrencyConverter(rates),
+            primary_label="live",
+            secondary_label="database",
+        )
     else:
+        # Prefer DB rate; fall back to live when pair is missing from DB.
         fallback = FallbackCurrencyConverter(
             primary=DatabaseCurrencyConverter(rates),
             secondary=live,
+            primary_label="database",
+            secondary_label="live",
         )
-        converter = ResilientCurrencyConverter(fallback)
+    converter = ResilientCurrencyConverter(fallback)
 
     pricing = PricingService(
         resolver=PricingStrategyResolver(),
@@ -86,14 +96,7 @@ async def simulate(
     PRICING_OPERATIONS.labels(product.code, "success").inc()
 
     # Determine which source provided the FX rate.
-    if priced.fx_rate_applied is None:
-        fx_source = None
-    elif payload.use_live_rate:
-        fx_source = "live"
-    elif fallback is not None:
-        fx_source = fallback.last_source
-    else:
-        fx_source = "database"
+    fx_source = None if priced.fx_rate_applied is None else fallback.last_source
 
     return PricingSimulateResponse(
         product_code=product.code,
