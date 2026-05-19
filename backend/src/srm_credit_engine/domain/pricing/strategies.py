@@ -50,7 +50,7 @@ class _CompoundDiscountStrategy:
 
 DuplicataMercantilStrategy = _CompoundDiscountStrategy(
     code="DUPLICATA_MERCANTIL",
-    monthly_spread=Decimal("0.15"),
+    monthly_spread=Decimal("0.015"),
 )
 
 ChequePreDatadoStrategy = _CompoundDiscountStrategy(
