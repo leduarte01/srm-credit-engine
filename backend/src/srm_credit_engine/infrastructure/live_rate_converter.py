@@ -2,10 +2,14 @@
 
 End-point used: https://economia.awesomeapi.com.br/json/last/{BASE}-{QUOTE}
 No authentication required. Free tier, no rate limit for low volume.
+
+Rates are cached in-process for ``_CACHE_TTL_SECONDS`` to avoid hitting the
+free-tier rate limit (HTTP 429) on repeated simulator calls.
 """
 
 from __future__ import annotations
 
+import time
 from datetime import datetime
 from decimal import Decimal
 
@@ -17,10 +21,17 @@ from srm_credit_engine.observability.metrics import FX_LOOKUPS
 
 _AWESOMEAPI_URL = "https://economia.awesomeapi.com.br/json/last/{base}-{quote}"
 _TIMEOUT_SECONDS = 5.0
+_CACHE_TTL_SECONDS = 60.0
+
+# Module-level cache: { "BASE-QUOTE": (rate, fetched_at_monotonic) }
+_rate_cache: dict[str, tuple[Decimal, float]] = {}
 
 
 class LiveRateCurrencyConverter:
-    """Fetches real-time FX rates from AwesomeAPI.
+    """Fetches real-time FX rates from AwesomeAPI with a 60-second in-process cache.
+
+    The cache prevents HTTP 429 (Too Many Requests) errors on the free tier
+    when the simulator is called in quick succession.
 
     Raises :class:`ExchangeRateNotFoundError` when the pair is unsupported or
     the external API is unreachable, so callers can handle it uniformly.
@@ -35,6 +46,13 @@ class LiveRateCurrencyConverter:
         return Money(amount.amount * rate, target_currency).quantize(8)
 
     async def _fetch_rate(self, base: str, quote: str) -> Decimal:
+        cache_key = f"{base.upper()}-{quote.upper()}"
+        cached = _rate_cache.get(cache_key)
+        if cached is not None:
+            rate, fetched_at = cached
+            if time.monotonic() - fetched_at < _CACHE_TTL_SECONDS:
+                return rate
+
         url = _AWESOMEAPI_URL.format(base=base.upper(), quote=quote.upper())
         pair_key = f"{base.upper()}{quote.upper()}"
         try:
@@ -64,10 +82,19 @@ class LiveRateCurrencyConverter:
             raise ExchangeRateNotFoundError(
                 f"No bid/ask price in AwesomeAPI response for {base}->{quote}."
             )
-        return Decimal(str(bid))
+        rate = Decimal(str(bid))
+        _rate_cache[cache_key] = (rate, time.monotonic())
+        return rate
 
     async def _fetch_rate_inverse(self, base: str, quote: str) -> Decimal:
         """Fallback: fetch quote->base and invert."""
+        cache_key = f"{base.upper()}-{quote.upper()}"
+        cached = _rate_cache.get(cache_key)
+        if cached is not None:
+            rate, fetched_at = cached
+            if time.monotonic() - fetched_at < _CACHE_TTL_SECONDS:
+                return rate
+
         url = _AWESOMEAPI_URL.format(base=quote.upper(), quote=base.upper())
         pair_key = f"{quote.upper()}{base.upper()}"
         try:
@@ -91,4 +118,6 @@ class LiveRateCurrencyConverter:
             raise ExchangeRateNotFoundError(
                 f"No bid/ask price in AwesomeAPI inverse response for {quote}->{base}."
             )
-        return Decimal("1") / Decimal(str(bid))
+        rate = Decimal("1") / Decimal(str(bid))
+        _rate_cache[cache_key] = (rate, time.monotonic())
+        return rate
