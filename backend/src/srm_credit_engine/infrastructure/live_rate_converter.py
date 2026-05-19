@@ -77,7 +77,7 @@ class LiveRateCurrencyConverter:
         _rate_cache[cache_key] = (rate, time.monotonic())
         return rate
 
-    async def _fetch_base_rates(self, base_lower: str) -> dict:
+    async def _fetch_base_rates(self, base_lower: str) -> dict[str, object]:
         """Fetch all rates for *base* currency, trying primary then fallback mirror."""
         last_exc: Exception | None = None
 
