@@ -43,12 +43,16 @@ export function PricingSimulator() {
 
       <form className="grid grid-cols-1 gap-3 sm:grid-cols-2" onSubmit={onSubmit}>
         <Field label={t('sim_product_code')}>
-          <input
+          <select
             value={productCode}
             onChange={(e) => setProductCode(e.target.value)}
             required
             className={inputClass}
-          />
+          >
+            <option value="DUPLICATA_MERCANTIL">Duplicata Mercantil — spread 1.5% a.m.</option>
+            <option value="CHEQUE_PRE_DATADO">Cheque Pré-datado — spread 2.5% a.m.</option>
+            <option value="CONTRATO_USD">Contrato USD — spread 1.2% a.m.</option>
+          </select>
         </Field>
         <Field label={t('sim_currency')}>
           <input
@@ -145,7 +149,7 @@ export function PricingSimulator() {
 }
 
 const inputClass =
-  'block w-full rounded-md border-0 px-3 py-1.5 text-sm text-zinc-900 ring-1 ring-inset ring-zinc-300 placeholder:text-zinc-400 focus:ring-2 focus:ring-inset focus:ring-zinc-900';
+  'block w-full rounded-md border-0 bg-white px-3 py-1.5 text-sm text-zinc-900 ring-1 ring-inset ring-zinc-300 placeholder:text-zinc-400 focus:ring-2 focus:ring-inset focus:ring-zinc-900';
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
