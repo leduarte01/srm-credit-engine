@@ -46,7 +46,7 @@ class LiveRateCurrencyConverter:
             # Try inverse pair
             try:
                 return await self._fetch_rate_inverse(base, quote)
-            except ExchangeRateNotFoundError:
+            except Exception:
                 raise ExchangeRateNotFoundError(
                     f"Live FX rate unavailable for {base}->{quote}: {exc}"
                 ) from exc
@@ -54,7 +54,7 @@ class LiveRateCurrencyConverter:
         if pair_key not in data:
             try:
                 return await self._fetch_rate_inverse(base, quote)
-            except ExchangeRateNotFoundError:
+            except Exception:
                 raise ExchangeRateNotFoundError(
                     f"Pair {base}->{quote} not found in AwesomeAPI response."
                 ) from None
@@ -70,10 +70,17 @@ class LiveRateCurrencyConverter:
         """Fallback: fetch quote->base and invert."""
         url = _AWESOMEAPI_URL.format(base=quote.upper(), quote=base.upper())
         pair_key = f"{quote.upper()}{base.upper()}"
-        async with httpx.AsyncClient(timeout=_TIMEOUT_SECONDS) as client:
-            response = await client.get(url)
-            response.raise_for_status()
-            data = response.json()
+        try:
+            async with httpx.AsyncClient(timeout=_TIMEOUT_SECONDS) as client:
+                response = await client.get(url)
+                response.raise_for_status()
+                data = response.json()
+        except ExchangeRateNotFoundError:
+            raise
+        except Exception as exc:
+            raise ExchangeRateNotFoundError(
+                f"Live FX rate unavailable for inverse pair {quote}->{base}: {exc}"
+            ) from exc
 
         if pair_key not in data:
             raise ExchangeRateNotFoundError(
