@@ -77,6 +77,32 @@ export interface Settlement {
   events: SettlementEvent[];
 }
 
+export interface Assignor {
+  document: string;
+  legal_name: string;
+}
+
+export interface AssignorCreate {
+  document: string;
+  legal_name: string;
+}
+
+export interface ExchangeRate {
+  base_currency: string;
+  quote_currency: string;
+  rate: string;
+  valid_from: string;
+  valid_to: string | null;
+}
+
+export interface ExchangeRateCreate {
+  base_currency: string;
+  quote_currency: string;
+  rate: string;
+  valid_from: string;
+  valid_to?: string | null;
+}
+
 export interface ApiError {
   code: string;
   message: string;

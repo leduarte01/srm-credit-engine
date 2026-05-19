@@ -1,5 +1,9 @@
 import { apiClient } from './client';
 import type {
+  Assignor,
+  AssignorCreate,
+  ExchangeRate,
+  ExchangeRateCreate,
   Page,
   PricingSimulateRequest,
   PricingSimulateResponse,
@@ -50,5 +54,32 @@ export async function settleReceivable(
     receivable_id: receivableId,
     reference_date: referenceDate ?? null,
   });
+  return data;
+}
+
+export async function listAssignors(offset = 0, limit = 50): Promise<Page<Assignor>> {
+  const { data } = await apiClient.get<Page<Assignor>>('/assignors', {
+    params: { offset, limit },
+  });
+  return data;
+}
+
+export async function createAssignor(body: AssignorCreate): Promise<Assignor> {
+  const { data } = await apiClient.post<Assignor>('/assignors', body);
+  return data;
+}
+
+export async function listFxRates(
+  baseCurrency: string,
+  quoteCurrency: string,
+): Promise<ExchangeRate[]> {
+  const { data } = await apiClient.get<ExchangeRate[]>(
+    `/fx-rates/${baseCurrency}/${quoteCurrency}/history`,
+  );
+  return data;
+}
+
+export async function createFxRate(body: ExchangeRateCreate): Promise<ExchangeRate> {
+  const { data } = await apiClient.post<ExchangeRate>('/fx-rates', body);
   return data;
 }

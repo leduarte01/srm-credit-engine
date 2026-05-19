@@ -1,19 +1,31 @@
 import { useState } from 'react';
 
 import { useI18n } from '../hooks/useI18n';
+import type { AppPage } from '../App';
 import { HelpModal } from './HelpModal';
 import { LanguageToggle } from './LanguageToggle';
 
 interface AppLayoutProps {
   children: React.ReactNode;
+  currentPage: AppPage;
+  onNavigate: (page: AppPage) => void;
 }
 
-function SidebarContent({ onHelpOpen }: { onHelpOpen: () => void }) {
+function SidebarContent({
+  onHelpOpen,
+  currentPage,
+  onNavigate,
+}: {
+  onHelpOpen: () => void;
+  currentPage: AppPage;
+  onNavigate: (page: AppPage) => void;
+}) {
   const { t } = useI18n();
 
-  const NAV_ITEMS = [
-    { labelKey: 'nav_receivables' as const, href: '#', active: true },
-    { labelKey: 'nav_config' as const, href: '#', active: false, soon: true },
+  const NAV_ITEMS: { labelKey: Parameters<typeof t>[0]; page: AppPage }[] = [
+    { labelKey: 'nav_receivables', page: 'dashboard' },
+    { labelKey: 'nav_assignors', page: 'assignors' },
+    { labelKey: 'nav_exchange_rates', page: 'exchange-rates' },
   ];
 
   return (
@@ -26,23 +38,18 @@ function SidebarContent({ onHelpOpen }: { onHelpOpen: () => void }) {
         <ul className="space-y-1">
           {NAV_ITEMS.map((item) => (
             <li key={item.labelKey}>
-              <a
-                href={item.href}
-                aria-current={item.active ? 'page' : undefined}
+              <button
+                type="button"
+                aria-current={currentPage === item.page ? 'page' : undefined}
                 className={
-                  item.active
-                    ? 'flex items-center justify-between rounded-lg bg-zinc-700 px-3 py-2 text-sm font-medium text-white'
-                    : 'flex items-center justify-between rounded-lg px-3 py-2 text-sm font-medium text-zinc-400 opacity-50'
+                  currentPage === item.page
+                    ? 'flex w-full items-center rounded-lg bg-zinc-700 px-3 py-2 text-sm font-medium text-white'
+                    : 'flex w-full items-center rounded-lg px-3 py-2 text-sm font-medium text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100'
                 }
-                onClick={(e) => e.preventDefault()}
+                onClick={() => onNavigate(item.page)}
               >
                 {t(item.labelKey)}
-                {'soon' in item && item.soon && (
-                  <span className="rounded-full bg-zinc-800 px-2 py-0.5 text-xs text-zinc-500">
-                    {t('nav_soon')}
-                  </span>
-                )}
-              </a>
+              </button>
             </li>
           ))}
         </ul>
@@ -63,7 +70,7 @@ function SidebarContent({ onHelpOpen }: { onHelpOpen: () => void }) {
   );
 }
 
-export function AppLayout({ children }: AppLayoutProps) {
+export function AppLayout({ children, currentPage, onNavigate }: AppLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
 
@@ -71,7 +78,11 @@ export function AppLayout({ children }: AppLayoutProps) {
     <div className="flex min-h-screen bg-zinc-50 text-zinc-900">
       {/* Desktop sidebar */}
       <aside className="hidden lg:flex lg:flex-shrink-0">
-        <SidebarContent onHelpOpen={() => setHelpOpen(true)} />
+        <SidebarContent
+          onHelpOpen={() => setHelpOpen(true)}
+          currentPage={currentPage}
+          onNavigate={onNavigate}
+        />
       </aside>
 
       {/* Mobile sidebar overlay */}
@@ -87,6 +98,11 @@ export function AppLayout({ children }: AppLayoutProps) {
               onHelpOpen={() => {
                 setSidebarOpen(false);
                 setHelpOpen(true);
+              }}
+              currentPage={currentPage}
+              onNavigate={(p) => {
+                setSidebarOpen(false);
+                onNavigate(p);
               }}
             />
           </aside>
