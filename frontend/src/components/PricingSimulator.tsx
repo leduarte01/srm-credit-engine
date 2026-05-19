@@ -55,13 +55,15 @@ export function PricingSimulator() {
           </select>
         </Field>
         <Field label={t('sim_currency')}>
-          <input
+          <select
             value={currency}
-            maxLength={3}
-            onChange={(e) => setCurrency(e.target.value.toUpperCase())}
+            onChange={(e) => setCurrency(e.target.value)}
             required
             className={inputClass}
-          />
+          >
+            <option value="BRL">BRL</option>
+            <option value="USD">USD</option>
+          </select>
         </Field>
         <Field label={t('sim_face_value')}>
           <input
