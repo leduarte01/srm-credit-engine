@@ -35,6 +35,9 @@ export const TRANSLATIONS = {
     sim_spread: 'Spread / month',
     sim_term: 'Term (months)',
     sim_fx: 'FX applied',
+    sim_use_live_rate: 'Use live market rate',
+    sim_fx_source_live: '⚡ Live rate (AwesomeAPI)',
+    sim_fx_source_database: '🗄 Registered rate',
     // Filters
     filter_assignor: 'Assignor (document)',
     filter_assignor_placeholder: 'Only digits',
@@ -150,6 +153,9 @@ export const TRANSLATIONS = {
     sim_spread: 'Spread / mês',
     sim_term: 'Prazo (meses)',
     sim_fx: 'FX aplicado',
+    sim_use_live_rate: 'Usar cotação em tempo real',
+    sim_fx_source_live: '⚡ Taxa ao vivo (AwesomeAPI)',
+    sim_fx_source_database: '🗄 Taxa cadastrada',
     // Filtros
     filter_assignor: 'Cedente (documento)',
     filter_assignor_placeholder: 'Somente dígitos',

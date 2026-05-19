@@ -7,7 +7,7 @@ from uuid import uuid4
 
 from fastapi import APIRouter
 
-from srm_credit_engine.api.v1.deps import PricingServiceDep, ProductTypeRepoDep
+from srm_credit_engine.api.v1.deps import ExchangeRateRepoDep, ProductTypeRepoDep, SettingsDep
 from srm_credit_engine.api.v1.schemas.common import ErrorResponse, MoneySchema
 from srm_credit_engine.api.v1.schemas.pricing import (
     PricingSimulateRequest,
@@ -15,8 +15,18 @@ from srm_credit_engine.api.v1.schemas.pricing import (
 )
 from srm_credit_engine.domain.entities.receivable import Receivable
 from srm_credit_engine.domain.exceptions import ProductTypeNotFoundError
+from srm_credit_engine.domain.pricing.resolver import PricingStrategyResolver
+from srm_credit_engine.domain.services.pricing_service import PricingService
 from srm_credit_engine.domain.value_objects.money import Money
+from srm_credit_engine.infrastructure.database_currency_converter import (
+    DatabaseCurrencyConverter,
+)
+from srm_credit_engine.infrastructure.fallback_currency_converter import (
+    FallbackCurrencyConverter,
+)
+from srm_credit_engine.infrastructure.live_rate_converter import LiveRateCurrencyConverter
 from srm_credit_engine.observability.metrics import PRICING_OPERATIONS
+from srm_credit_engine.resilience import ResilientCurrencyConverter
 
 router = APIRouter(prefix="/pricing", tags=["pricing"])
 
@@ -30,11 +40,30 @@ router = APIRouter(prefix="/pricing", tags=["pricing"])
 async def simulate(
     payload: PricingSimulateRequest,
     products: ProductTypeRepoDep,
-    pricing: PricingServiceDep,
+    rates: ExchangeRateRepoDep,
+    settings: SettingsDep,
 ) -> PricingSimulateResponse:
     product = await products.get_by_code(payload.product_code)
     if product is None:
         raise ProductTypeNotFoundError(f"Product type {payload.product_code} not found.")
+
+    # Build converter based on user preference.
+    live = LiveRateCurrencyConverter()
+    if payload.use_live_rate:
+        converter = ResilientCurrencyConverter(live)
+        fallback: FallbackCurrencyConverter | None = None
+    else:
+        fallback = FallbackCurrencyConverter(
+            primary=DatabaseCurrencyConverter(rates),
+            secondary=live,
+        )
+        converter = ResilientCurrencyConverter(fallback)
+
+    pricing = PricingService(
+        resolver=PricingStrategyResolver(),
+        currency_converter=converter,
+        base_rate_monthly=settings.base_rate_monthly,
+    )
 
     # Build a transient receivable just for the calculation.
     receivable = Receivable(
@@ -56,6 +85,16 @@ async def simulate(
         raise
     PRICING_OPERATIONS.labels(product.code, "success").inc()
 
+    # Determine which source provided the FX rate.
+    if priced.fx_rate_applied is None:
+        fx_source = None
+    elif payload.use_live_rate:
+        fx_source = "live"
+    elif fallback is not None:
+        fx_source = fallback.last_source
+    else:
+        fx_source = "database"
+
     return PricingSimulateResponse(
         product_code=product.code,
         present_value=MoneySchema.model_validate(priced.pricing.present_value),
@@ -65,4 +104,5 @@ async def simulate(
         effective_monthly_rate=priced.pricing.effective_monthly_rate,
         term_months=priced.pricing.term_months,
         fx_rate_applied=priced.fx_rate_applied,
+        fx_rate_source=fx_source,
     )

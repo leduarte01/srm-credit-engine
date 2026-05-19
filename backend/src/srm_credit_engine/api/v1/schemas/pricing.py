@@ -24,6 +24,11 @@ class PricingSimulateRequest(BaseModel):
         default=None,
         description="Date used to compute remaining term. Defaults to issue_date.",
     )
+    use_live_rate: bool = Field(
+        default=False,
+        description="When true, always fetch the FX rate from the live market API "
+        "instead of the registered database rates.",
+    )
 
 
 class PricingSimulateResponse(BaseModel):
@@ -37,3 +42,4 @@ class PricingSimulateResponse(BaseModel):
     effective_monthly_rate: Decimal
     term_months: Decimal
     fx_rate_applied: Decimal | None
+    fx_rate_source: str | None = None
