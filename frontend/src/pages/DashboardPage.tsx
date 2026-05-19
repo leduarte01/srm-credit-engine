@@ -176,9 +176,7 @@ export function DashboardPage() {
             void refetch();
             setFeedback({
               kind: errors === 0 ? 'ok' : 'error',
-              message: `Carga em lote: ${ok} criados${
-                errors > 0 ? `, ${errors} erros` : ''
-              }.`,
+              message: `Carga em lote: ${ok} criados${errors > 0 ? `, ${errors} erros` : ''}.`,
             });
           }}
         />
