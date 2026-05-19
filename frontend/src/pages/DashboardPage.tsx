@@ -9,7 +9,6 @@ import { useI18n } from '../hooks/useI18n';
 import { useCancelReceivable, useReceivables, useSettleReceivable } from '../hooks/queries';
 import { useUiStore } from '../store/uiStore';
 import type { Receivable } from '../types/domain';
-import type { Receivable } from '../types/domain';
 
 export function DashboardPage() {
   const { t } = useI18n();
