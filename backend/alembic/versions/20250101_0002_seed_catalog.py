@@ -34,9 +34,9 @@ def upgrade() -> None:
         sa.text(
             """
             INSERT INTO product_type (code, name, monthly_spread, settlement_currency_code) VALUES
-                ('DUPLICATA',    'Duplicata Mercantil', 0.015000, 'BRL'),
-                ('CHEQUE_PRE',   'Cheque Pré-datado',   0.025000, 'BRL'),
-                ('CONTRATO_USD', 'Contrato em USD',     0.012000, 'USD')
+                ('DUPLICATA_MERCANTIL', 'Duplicata Mercantil', 0.015000, 'BRL'),
+                ('CHEQUE_PRE_DATADO',   'Cheque Pré-datado',   0.025000, 'BRL'),
+                ('CONTRATO_USD',        'Contrato em USD',     0.012000, 'USD')
             ON CONFLICT (code) DO NOTHING;
             """
         )
@@ -46,7 +46,7 @@ def upgrade() -> None:
 def downgrade() -> None:
     op.execute(
         sa.text(
-            "DELETE FROM product_type WHERE code IN ('DUPLICATA', 'CHEQUE_PRE', 'CONTRATO_USD');"
+            "DELETE FROM product_type WHERE code IN ('DUPLICATA_MERCANTIL', 'CHEQUE_PRE_DATADO', 'CONTRATO_USD');"
         )
     )
     op.execute(
