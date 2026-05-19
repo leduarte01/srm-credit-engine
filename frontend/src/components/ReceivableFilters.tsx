@@ -29,12 +29,15 @@ export function ReceivableFilters() {
         />
       </Field>
       <Field label={t('filter_currency')}>
-        <input
+        <select
           value={filters.currency ?? ''}
-          maxLength={3}
-          onChange={(e) => setFilter('currency', e.target.value.toUpperCase() || undefined)}
+          onChange={(e) => setFilter('currency', e.target.value || undefined)}
           className={inputClass}
-        />
+        >
+          <option value="">{t('filter_currency_any')}</option>
+          <option value="BRL">BRL</option>
+          <option value="USD">USD</option>
+        </select>
       </Field>
       <Field label={t('filter_status')}>
         <select

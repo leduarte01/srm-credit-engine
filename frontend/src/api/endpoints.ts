@@ -8,6 +8,7 @@ import type {
   PricingSimulateRequest,
   PricingSimulateResponse,
   Receivable,
+  ReceivableCreate,
   ReceivableListFilters,
   Settlement,
 } from '../types/domain';
@@ -26,6 +27,11 @@ export async function listReceivables(
   params.limit = filters.limit ?? 50;
 
   const { data } = await apiClient.get<Page<Receivable>>('/receivables', { params });
+  return data;
+}
+
+export async function createReceivable(payload: ReceivableCreate): Promise<Receivable> {
+  const { data } = await apiClient.post<Receivable>('/receivables', payload);
   return data;
 }
 
