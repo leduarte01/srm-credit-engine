@@ -36,6 +36,15 @@ export interface Page<T> {
   meta: PageMeta;
 }
 
+export interface ReceivableCreate {
+  assignor_document: string;
+  product_code: string;
+  face_value: Money;
+  issue_date: string;
+  due_date: string;
+  external_reference: string;
+}
+
 export interface PricingSimulateRequest {
   product_code: string;
   face_value: Money;

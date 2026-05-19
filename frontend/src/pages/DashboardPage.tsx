@@ -2,6 +2,7 @@ import { useState } from 'react';
 
 import { ApiClientError } from '../api/client';
 import { KpiCards } from '../components/KpiCards';
+import { NewReceivableModal } from '../components/NewReceivableModal';
 import { PricingSimulator } from '../components/PricingSimulator';
 import { ReceivableFilters } from '../components/ReceivableFilters';
 import { ReceivableTable } from '../components/ReceivableTable';
@@ -19,6 +20,7 @@ export function DashboardPage() {
   const cancelMutation = useCancelReceivable();
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<{ kind: 'ok' | 'error'; message: string } | null>(null);
+  const [showNewModal, setShowNewModal] = useState(false);
 
   const runAction = async (
     receivable: Receivable,
@@ -57,6 +59,13 @@ export function DashboardPage() {
           disabled={isFetching}
         >
           {isFetching ? t('btn_refreshing') : t('btn_refresh')}
+        </button>
+        <button
+          type="button"
+          onClick={() => setShowNewModal(true)}
+          className="inline-flex items-center rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-500"
+        >
+          {t('btn_new_receivable')}
         </button>
       </header>
 
@@ -137,6 +146,16 @@ export function DashboardPage() {
           </>
         )}
       </section>
+
+      {showNewModal && (
+        <NewReceivableModal
+          onClose={() => setShowNewModal(false)}
+          onCreated={(ref) => {
+            setShowNewModal(false);
+            setFeedback({ kind: 'ok', message: `${t('modal_created')} ${ref}` });
+          }}
+        />
+      )}
     </main>
   );
 }

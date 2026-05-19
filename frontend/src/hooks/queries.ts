@@ -2,6 +2,7 @@ import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/rea
 
 import {
   cancelReceivable,
+  createReceivable,
   listReceivables,
   settleReceivable,
   simulatePricing,
@@ -10,6 +11,7 @@ import type {
   PricingSimulateRequest,
   PricingSimulateResponse,
   Receivable,
+  ReceivableCreate,
   ReceivableListFilters,
   ReceivableStatus,
   Settlement,
@@ -29,6 +31,16 @@ export function useReceivables(filters: ReceivableListFilters) {
 export function useSimulatePricing() {
   return useMutation<PricingSimulateResponse, Error, PricingSimulateRequest>({
     mutationFn: simulatePricing,
+  });
+}
+
+export function useCreateReceivable() {
+  const qc = useQueryClient();
+  return useMutation<Receivable, Error, ReceivableCreate>({
+    mutationFn: createReceivable,
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['receivables'] });
+    },
   });
 }
 
