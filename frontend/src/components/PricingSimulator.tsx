@@ -20,6 +20,7 @@ export function PricingSimulator() {
   const [currency, setCurrency] = useState('BRL');
   const [issueDate, setIssueDate] = useState(today());
   const [dueDate, setDueDate] = useState(addDays(today(), 30));
+  const [useLiveRate, setUseLiveRate] = useState(false);
 
   const mutation = useSimulatePricing();
 
@@ -30,6 +31,7 @@ export function PricingSimulator() {
       face_value: { amount: amount.trim(), currency: currency.trim().toUpperCase() },
       issue_date: issueDate,
       due_date: dueDate,
+      use_live_rate: useLiveRate,
     };
     mutation.mutate(body);
   };
@@ -93,7 +95,16 @@ export function PricingSimulator() {
           />
         </Field>
 
-        <div className="mt-2 flex justify-end sm:col-span-2">
+        <div className="mt-2 flex items-center justify-between sm:col-span-2">
+          <label className="flex cursor-pointer items-center gap-2 text-sm text-zinc-600">
+            <input
+              type="checkbox"
+              checked={useLiveRate}
+              onChange={(e) => setUseLiveRate(e.target.checked)}
+              className="h-4 w-4 rounded border-zinc-300 accent-zinc-900"
+            />
+            {t('sim_use_live_rate')}
+          </label>
           <button
             type="submit"
             disabled={mutation.isPending}
@@ -143,6 +154,21 @@ export function PricingSimulator() {
           <Stat label={t('sim_term')} value={Number(mutation.data.term_months).toFixed(4)} />
           {mutation.data.fx_rate_applied && (
             <Stat label={t('sim_fx')} value={mutation.data.fx_rate_applied} />
+          )}
+          {mutation.data.fx_rate_source && (
+            <div className="sm:col-span-3">
+              <span
+                className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                  mutation.data.fx_rate_source === 'live'
+                    ? 'bg-emerald-100 text-emerald-700'
+                    : 'bg-zinc-200 text-zinc-600'
+                }`}
+              >
+                {mutation.data.fx_rate_source === 'live'
+                  ? t('sim_fx_source_live')
+                  : t('sim_fx_source_database')}
+              </span>
+            </div>
           )}
         </dl>
       )}

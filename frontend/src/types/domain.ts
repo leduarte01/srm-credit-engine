@@ -51,6 +51,7 @@ export interface PricingSimulateRequest {
   issue_date: string;
   due_date: string;
   reference_date?: string | null;
+  use_live_rate?: boolean;
 }
 
 export interface PricingSimulateResponse {
@@ -62,6 +63,7 @@ export interface PricingSimulateResponse {
   effective_monthly_rate: string;
   term_months: string;
   fx_rate_applied: string | null;
+  fx_rate_source: 'database' | 'live' | null;
 }
 
 export interface SettlementEvent {

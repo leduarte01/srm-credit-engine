@@ -9,6 +9,12 @@ from srm_credit_engine.infrastructure.database import (
 from srm_credit_engine.infrastructure.database_currency_converter import (
     DatabaseCurrencyConverter,
 )
+from srm_credit_engine.infrastructure.fallback_currency_converter import (
+    FallbackCurrencyConverter,
+)
+from srm_credit_engine.infrastructure.live_rate_converter import (
+    LiveRateCurrencyConverter,
+)
 from srm_credit_engine.infrastructure.models import Base
 from srm_credit_engine.infrastructure.repositories import (
     SqlAlchemyAssignorRepository,
@@ -21,6 +27,8 @@ from srm_credit_engine.infrastructure.repositories import (
 __all__ = [
     "Base",
     "DatabaseCurrencyConverter",
+    "FallbackCurrencyConverter",
+    "LiveRateCurrencyConverter",
     "SqlAlchemyAssignorRepository",
     "SqlAlchemyExchangeRateRepository",
     "SqlAlchemyProductTypeRepository",
