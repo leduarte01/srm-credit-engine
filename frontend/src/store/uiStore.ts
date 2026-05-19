@@ -9,6 +9,7 @@ interface UiState {
     key: K,
     value: ReceivableListFilters[K],
   ) => void;
+  setOffset: (offset: number) => void;
   setStatus: (status: ReceivableStatus | undefined) => void;
   resetFilters: () => void;
   selectedReceivableId: string | null;
@@ -32,6 +33,10 @@ export const useUiStore = create<UiState>((set) => ({
   setFilter: (key, value) =>
     set((state) => ({
       filters: { ...state.filters, [key]: value, offset: 0 },
+    })),
+  setOffset: (offset) =>
+    set((state) => ({
+      filters: { ...state.filters, offset },
     })),
   setStatus: (status) =>
     set((state) => ({
