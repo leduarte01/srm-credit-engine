@@ -60,7 +60,7 @@ function parseCsv(text: string): CsvRow[] {
       const vals = line.split(',').map((v) => v.trim());
       return Object.fromEntries(
         REQUIRED_HEADERS.map((key) => [key, vals[header.indexOf(key)] ?? '']),
-      ) as CsvRow;
+      ) as unknown as CsvRow;
     });
 }
 
