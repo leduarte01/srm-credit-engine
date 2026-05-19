@@ -8,53 +8,103 @@ e o projeto adere a [Semantic Versioning 2.0.0](https://semver.org/lang/pt-BR/).
 
 ## [Unreleased]
 
+_Sem mudanças pendentes para a próxima release._
+
+## [1.1.0] — 2026-05-19
+
+Ciclo de **melhorias de produto + operação** sobre a base v1.0.0.
+Nenhuma quebra de compatibilidade — release **MINOR**.
+
 ### Added
 
+#### Operacional (CD + Hospedagem)
+
+- **CD via webhook EasyPanel** disparado pelos workflows `backend.yml`
+  e `frontend.yml` após o job `quality` passar em `main` (PR #19).
+- Documentação de hospedagem (serviços, variáveis, secrets, rollback)
+  no [README.md](README.md).
+
+#### Backend
+
+- **Seed do catálogo** (moedas BRL/USD + tipos de produto
+  DUPLICATA / CHEQUE / CONTRATO_USD) via migration Alembic
+  idempotente, alinhado às strategies registradas (PR #22).
 - **Cotação FX em tempo real** (`LiveRateCurrencyConverter`) usando a
   CDN [fawazahmed0/exchange-api](https://github.com/fawazahmed0/exchange-api)
   (sem auth, sem rate-limit) com mirror Cloudflare Pages e cache
-  in-process de 60 s.
+  in-process de 60 s (PRs #26 + #27).
 - **Fallback automático DB→live** (`FallbackCurrencyConverter`):
   primeiro tenta a taxa cadastrada; em `ExchangeRateNotFoundError`
-  cai para a cotação ao vivo, expondo `last_source` (`database` |
-  `live`).
-- **Campo `use_live_rate`** em `POST /pricing/simulate` para forçar
-  cotação ao vivo; resposta passou a incluir `fx_rate_source`.
-- **Toggle "Usar cotação em tempo real"** no `PricingSimulator` do
-  frontend, com badge colorido indicando a fonte da taxa.
-- **Modal "Novo Recebível"** com form completo + botão **"Liquidar"**
-  inline na tabela.
+  cai para a cotação ao vivo, expondo `last_source` (`database`
+  | `live`) (PR #26).
+- **Campo `use_live_rate`** em `POST /pricing/simulate`; resposta
+  passou a incluir `fx_rate_source: "database" | "live" | null`
+  (PR #26).
+
+#### Frontend
+
+- **App shell** com sidebar fixa + quatro **KPI cards** no topo do
+  dashboard (PR #20).
+- **i18n PT-BR/EN** com toggle persistente em `localStorage` (Zustand)
+  e **modal contextual de ajuda** explicando spreads + fórmula
+  (PR #21).
+- **Modal "Novo Recebível"** com formulário completo + botão
+  **"Liquidar"** inline na tabela (PR #25 — M1).
 - **Páginas de configuração**: Cedentes (`/assignors`) e Taxas de
-  Câmbio (`/fx-rates`).
-- **Upload em lote** de recebíveis via CSV
-  (`components/BatchUploadModal.tsx`) com drag-and-drop, validação
-  linha a linha e relatório de erros. CSV de exemplo em
-  [scripts/receivables_sample.csv](scripts/receivables_sample.csv) e
-  seeder standalone em [scripts/seed_receivables.py](scripts/seed_receivables.py).
-- **Selects fixos BRL/USD** no simulador e nos filtros (substituem
-  inputs livres).
-- **Controles Prev / Next + "Exibindo X–Y de Z"** na grid para
-  evidenciar a paginação server-side.
-- **Seção "Validação contra o case"** no README mapeando cada
-  requisito do briefing à sua implementação.
+  Câmbio (`/fx-rates`) com listar + criar (PR #24 — M2 + M3).
+- **Selects fixos BRL/USD** no simulador e nos filtros + select de
+  produto com spreads como hint + controles
+  **Prev / Next + "Exibindo X–Y de Z"** evidenciando paginação
+  server-side (PR #23 — M4 + M5 + M6).
+- **Toggle "Usar cotação em tempo real"** no `PricingSimulator`, com
+  badge colorido indicando a fonte da taxa (PR #26 — M7).
+- **Upload em lote** de recebíveis via CSV (`BatchUploadModal`) com
+  drag-and-drop, validação linha a linha e relatório de erros. CSV
+  de exemplo em
+  [scripts/receivables_sample.csv](scripts/receivables_sample.csv)
+  (PR #28 — M8).
 
 ### Changed
 
-- README atualizado com a tabela de endpoints corrigida
-  (`/pricing/simulate`, `/fx-rates/{base}/{quote}/history`) e seção
-  **Funcionalidades de produto**.
+- README atualizado com tabela de endpoints corrigida
+  (`/pricing/simulate`, `/fx-rates/{base}/{quote}/history`), seções
+  **Funcionalidades de produto**, **Qualidade, CI e CD** e
+  **Hospedagem**.
 - `PLAN.md` reflete M1–M8 implementadas com referências aos PRs
-  #21–#28.
+  #18–#28.
+- AwesomeAPI substituída por fawazahmed0/exchange-api (sem rate-limit).
 
 ### Fixed
 
-- `LiveRateCurrencyConverter` agora captura **todas** as exceções
-  HTTP e retorna `ExchangeRateNotFoundError` em vez de propagar 500
-  (PRs #25–#27).
-- Tipos `mypy strict` em `_fetch_base_rates` (`dict[str, Any]`).
-- Migração da AwesomeAPI (rate-limited) para fawazahmed0/exchange-api.
+- **nginx** em ambiente Docker Swarm (EasyPanel) com
+  `resolver 127.0.0.11`, nome completo do serviço no upstream e
+  rewrite explícito do prefixo `/api` (PR #18).
+- **`LiveRateCurrencyConverter`** captura **todas** as exceções HTTP
+  e retorna `ExchangeRateNotFoundError` em vez de propagar 500
+  (PR #27).
+- Tipos `mypy strict` em `_fetch_base_rates` (`dict[str, Any]`)
+  (PR #27).
+- `defaultProductCode` no `PricingSimulator` alinhado ao catálogo do
+  backend (PR #21).
 
----
+### Documentation
+
+- 12 novos arquivos em
+  [docs/pull-requests/](docs/pull-requests/) (`PR-018` a `PR-029`).
+- [docs/COMMITS.md](docs/COMMITS.md) com Etapas 16–20 cobrindo PRs
+  #18–#29.
+- [AI_USAGE.md](AI_USAGE.md) com adendo pós-v1.0.0 documentando três
+  alucinações observadas (PR #29).
+
+### Quality gates atendidos
+
+- Mesmos gates da v1.0.0; nenhuma regressão de cobertura.
+- Build Docker + `docker compose config --quiet` ok.
+- Deploy automático em `main` validado em produção (EasyPanel).
+
+### Versionamento
+
+- Tag anotada `v1.1.0` em `main`.
 
 ## [1.0.0] — 2026-05-18
 
@@ -184,5 +234,6 @@ README final e tag de release.
 - Descrições dos PRs:
   [docs/pull-requests/](docs/pull-requests/).
 
-[Unreleased]: https://github.com/leduarte01/srm-credit-engine/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/leduarte01/srm-credit-engine/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/leduarte01/srm-credit-engine/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/leduarte01/srm-credit-engine/releases/tag/v1.0.0

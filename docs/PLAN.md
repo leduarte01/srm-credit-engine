@@ -59,3 +59,10 @@
 | M6  | Moeda: trocar `input` livre por `<select>` BRL/USD no simulador e nos filtros                             | `feat/frontend-receivable-crud` | ✅ Implementado (PR #21)      |
 | M7  | Cotação FX em tempo real (fawazahmed0/exchange-api) com fallback DB→live, toggle no simulador             | `feat/live-fx-rate`             | ✅ Implementado (PRs #24–#27) |
 | M8  | Upload em lote de recebíveis via CSV (drag-and-drop + validação linha a linha)                            | `feat/batch-upload-csv`         | ✅ Implementado (PR #28)      |
+
+## Releases
+
+| Tag      | Data       | Conteúdo                                                                     |
+| -------- | ---------- | ---------------------------------------------------------------------------- |
+| `v1.0.0` | 2026-05-18 | Primeira release pública (Etapas 0–15). Ver [CHANGELOG.md](../CHANGELOG.md). |
+| `v1.1.0` | 2026-05-19 | Melhorias M1–M8 + CD via EasyPanel + i18n + dashboard. PRs #18–#29.          |
