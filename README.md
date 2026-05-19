@@ -18,7 +18,9 @@
 - [Desenvolvimento local](#desenvolvimento-local)
 - [Estrutura do repositório](#estrutura-do-repositório)
 - [Endpoints principais](#endpoints-principais)
-- [Qualidade e CI](#qualidade-e-ci)
+- [Funcionalidades de produto](#funcionalidades-de-produto)
+- [Qualidade, CI e CD](#qualidade-ci-e-cd)
+- [Hospedagem](#hospedagem)
 - [Arquitetura](#arquitetura)
 - [Decisões registradas (ADRs)](#decisões-registradas-adrs)
 - [Operação em crise](#operação-em-crise)
@@ -192,25 +194,54 @@ SRM/
 
 Base path: `/api/v1`. OpenAPI interativo em `/docs`.
 
-| Recurso           | Métodos                         | Descrição                                   |
-| ----------------- | ------------------------------- | ------------------------------------------- |
-| `/assignors`      | GET, POST, GET/{id}, PATCH/{id} | Cedentes (KYC + dados cadastrais)           |
-| `/product-types`  | GET                             | Catálogo de tipos de produto                |
-| `/receivables`    | GET, POST, GET/{id}, PATCH/{id} | Recebíveis                                  |
-| `/pricing`        | POST                            | Precifica recebível (simples/composto + FX) |
-| `/exchange-rates` | GET                             | Audit trail de cotações usadas              |
-| `/settlements`    | GET, POST                       | Liquidações                                 |
-| `/reports/*`      | GET                             | Sumarizações analíticas da carteira         |
-| `/health`         | GET                             | Liveness                                    |
-| `/health/ready`   | GET                             | Readiness (ping no DB)                      |
-| `/metrics`        | GET                             | Prometheus scrape                           |
+| Recurso             | Métodos                               | Descrição                                                      |
+| ------------------- | ------------------------------------- | -------------------------------------------------------------- |
+| `/assignors`        | GET, POST, GET/{id}, PATCH/{id}       | Cedentes (KYC + dados cadastrais)                              |
+| `/product-types`    | GET                                   | Catálogo de tipos de produto                                   |
+| `/receivables`      | GET, POST, GET/{id}, PATCH/{id}       | Recebíveis (POST em lote no frontend via CSV)                  |
+| `/pricing/simulate` | POST                                  | Precifica recebível (simples/composto + FX cadastrado ou live) |
+| `/fx-rates`         | GET, POST, GET/{base}/{quote}/history | Cotações de câmbio cadastradas + histórico                     |
+| `/settlements`      | GET, POST                             | Liquidações (audit trail de eventos imutável)                  |
+| `/reports/*`        | GET                                   | Sumarizações analíticas da carteira (SQL nativo)               |
+| `/health`           | GET                                   | Liveness                                                       |
+| `/health/ready`     | GET                                   | Readiness (ping no DB)                                         |
+| `/metrics`          | GET                                   | Prometheus scrape                                              |
 
 Valores monetários trafegam **sempre como string decimal** —
 ver [ADR-003](docs/adr/ADR-003-decimal-money.md).
 
+## Funcionalidades de produto
+
+Além dos requisitos do case, foram adicionadas melhorias pós-v1.0.0
+documentadas em [docs/PLAN.md](docs/PLAN.md):
+
+- **Painel multimoeda (BRL/USD)** — selects fixos no simulador e nos
+  filtros, evitando códigos arbitrários.
+- **Modal "Novo Recebível"** com form completo + botão **"Liquidar"**
+  inline na tabela de recebíveis.
+- **Upload em lote via CSV** — drag-and-drop com validação linha a
+  linha, relatório de erros e fallback de criação parcial. Exemplo
+  em [scripts/receivables_sample.csv](scripts/receivables_sample.csv).
+- **Cotação FX em tempo real** com toggle no `PricingSimulator`. Por
+  padrão usa a taxa cadastrada; quando ausente faz fallback automático
+  para a CDN [fawazahmed0/exchange-api](https://github.com/fawazahmed0/exchange-api)
+  (sem auth, sem rate-limit) com cache in-process de 60 s e mirror
+  Cloudflare Pages. A resposta indica `fx_rate_source: "database" | "live"`
+  e a UI mostra um badge colorido.
+- **Páginas de configuração** — Cedentes e Taxas de Câmbio (listar +
+  criar) com formulários acessíveis e estado gerenciado por TanStack
+  Query.
+- **i18n PT/EN** com toggle persistente (Zustand) — todo o painel,
+  modais e mensagens de erro têm chaves traduzidas em
+  `frontend/src/lib/i18n.ts`.
+- **Help modal contextual** explicando spreads, fórmula e fluxo de
+  liquidação.
+
 ---
 
-## Qualidade e CI
+## Qualidade, CI e CD
+
+### Continuous Integration
 
 Três workflows path-filtered (`.github/workflows/`):
 
@@ -225,6 +256,76 @@ Localmente os mesmos gates rodam via **pre-commit** (`.pre-commit-config.yaml`).
 
 Todos os PRs seguem **Conventional Commits 1.0.0** + descrição em
 [docs/pull-requests/](docs/pull-requests/).
+
+### Continuous Deployment
+
+Deploy automático em **push para `main`**, após o job `quality` passar:
+
+| Workflow       | Job      | Condição                                   | Ação                                       |
+| -------------- | -------- | ------------------------------------------ | ------------------------------------------ |
+| `backend.yml`  | `deploy` | `github.ref == 'refs/heads/main'` + `push` | `curl -X POST $EASYPANEL_BACKEND_WEBHOOK`  |
+| `frontend.yml` | `deploy` | `github.ref == 'refs/heads/main'` + `push` | `curl -X POST $EASYPANEL_FRONTEND_WEBHOOK` |
+
+Fluxo completo de uma mudança em produção:
+
+1. PR aberto contra `main` → roda `quality` (lint + types + testes + build).
+2. Merge `--no-ff` em `main` → dispara novamente `quality` no head commit.
+3. Job `deploy` chama o webhook do EasyPanel correspondente.
+4. EasyPanel clona `main`, reconstrói a imagem Docker (mesmo Dockerfile do
+   compose) e faz **rolling restart** do container.
+5. Health-check em `/health/ready` (backend) e `/healthz` (nginx do SPA)
+   determina se o novo container entra no pool.
+
+Secrets esperados no repositório (GitHub → Settings → Secrets and variables):
+
+- `EASYPANEL_BACKEND_WEBHOOK` — URL de deploy hook do serviço backend.
+- `EASYPANEL_FRONTEND_WEBHOOK` — URL de deploy hook do serviço frontend.
+
+---
+
+## Hospedagem
+
+O projeto roda em **EasyPanel** (PaaS self-hosted baseado em Docker) com
+três serviços:
+
+| Serviço    | Imagem / fonte                         | Porta interna | Health-check           |
+| ---------- | -------------------------------------- | ------------- | ---------------------- |
+| `backend`  | Build do `backend/Dockerfile`          | `8000`        | `GET /health/ready`    |
+| `frontend` | Build do `frontend/Dockerfile`         | `8080`        | `GET /healthz` (nginx) |
+| `db`       | `postgres:16-alpine` + volume `pgdata` | `5432`        | `pg_isready`           |
+
+Configuração mínima (variáveis de ambiente por serviço):
+
+**Backend** — ver `backend/.env.example`:
+
+- `DATABASE_URL=postgresql+asyncpg://srm:srm@db:5432/srm`
+- `RUN_MIGRATIONS=true` (aplica `alembic upgrade head` no boot)
+- `LOG_LEVEL=INFO`, `OTEL_SERVICE_NAME=srm-backend`
+- `FX_PROVIDER_BASE_URL` (opcional; default usa CDN fawazahmed0)
+
+**Frontend** — nginx serve o bundle estático e faz proxy de `/api/*` para o
+backend interno:
+
+- `VITE_API_BASE_URL=/api/v1` (injetado no `npm run build`)
+- `BACKEND_UPSTREAM=http://backend:8000` (lido pelo `docker/nginx.conf`)
+
+**Banco** — volume persistente `pgdata` montado em `/var/lib/postgresql/data`;
+backup diário via snapshot do EasyPanel.
+
+### Rollback
+
+Duas opções, em ordem de preferência:
+
+1. **Revert no Git** — `git revert <sha>` em `main` redisparara CI/CD
+   completo. É o caminho canônico (ver
+   [docs/HOTFIX_PROTOCOL.md](docs/HOTFIX_PROTOCOL.md)).
+2. **Redeploy de imagem anterior** — no painel do EasyPanel, escolher um
+   build histórico e clicar **Redeploy**. Útil quando o problema é de
+   infra (ex.: imagem corrompida) e não de código.
+
+Migrations destrutivas exigem revert manual via `alembic downgrade` ANTES
+do redeploy — o runbook completo está em
+[docs/architecture/runbooks/](docs/architecture/runbooks/).
 
 ---
 
