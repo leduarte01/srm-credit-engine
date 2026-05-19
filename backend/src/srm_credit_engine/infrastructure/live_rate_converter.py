@@ -18,6 +18,7 @@ from __future__ import annotations
 import time
 from datetime import datetime
 from decimal import Decimal
+from typing import Any
 
 import httpx
 
@@ -77,7 +78,7 @@ class LiveRateCurrencyConverter:
         _rate_cache[cache_key] = (rate, time.monotonic())
         return rate
 
-    async def _fetch_base_rates(self, base_lower: str) -> dict[str, object]:
+    async def _fetch_base_rates(self, base_lower: str) -> dict[str, Any]:
         """Fetch all rates for *base* currency, trying primary then fallback mirror."""
         last_exc: Exception | None = None
 
