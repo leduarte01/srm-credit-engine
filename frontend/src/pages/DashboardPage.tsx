@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
 import { ApiClientError } from '../api/client';
+import { BatchUploadModal } from '../components/BatchUploadModal';
 import { KpiCards } from '../components/KpiCards';
 import { NewReceivableModal } from '../components/NewReceivableModal';
 import { PricingSimulator } from '../components/PricingSimulator';
@@ -21,6 +22,7 @@ export function DashboardPage() {
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<{ kind: 'ok' | 'error'; message: string } | null>(null);
   const [showNewModal, setShowNewModal] = useState(false);
+  const [showBatchModal, setShowBatchModal] = useState(false);
 
   const runAction = async (
     receivable: Receivable,
@@ -60,13 +62,22 @@ export function DashboardPage() {
         >
           {isFetching ? t('btn_refreshing') : t('btn_refresh')}
         </button>
-        <button
-          type="button"
-          onClick={() => setShowNewModal(true)}
-          className="inline-flex items-center rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-500"
-        >
-          {t('btn_new_receivable')}
-        </button>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => setShowBatchModal(true)}
+            className="inline-flex items-center rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
+          >
+            📂 {t('btn_batch_upload') ?? 'Carga em lote'}
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowNewModal(true)}
+            className="inline-flex items-center rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-500"
+          >
+            {t('btn_new_receivable')}
+          </button>
+        </div>
       </header>
 
       <KpiCards />
@@ -153,6 +164,22 @@ export function DashboardPage() {
           onCreated={(ref) => {
             setShowNewModal(false);
             setFeedback({ kind: 'ok', message: `${t('modal_created')} ${ref}` });
+          }}
+        />
+      )}
+
+      {showBatchModal && (
+        <BatchUploadModal
+          onClose={() => setShowBatchModal(false)}
+          onDone={(ok, errors) => {
+            setShowBatchModal(false);
+            void refetch();
+            setFeedback({
+              kind: errors === 0 ? 'ok' : 'error',
+              message: `Carga em lote: ${ok} criados${
+                errors > 0 ? `, ${errors} erros` : ''
+              }.`,
+            });
           }}
         />
       )}
