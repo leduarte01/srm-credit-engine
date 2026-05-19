@@ -15,7 +15,7 @@ const addDays = (iso: string, days: number): string => {
 
 export function PricingSimulator() {
   const { t } = useI18n();
-  const [productCode, setProductCode] = useState('DUPL');
+  const [productCode, setProductCode] = useState('DUPLICATA_MERCANTIL');
   const [amount, setAmount] = useState('10000.00');
   const [currency, setCurrency] = useState('BRL');
   const [issueDate, setIssueDate] = useState(today());
