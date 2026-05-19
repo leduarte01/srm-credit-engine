@@ -46,7 +46,8 @@ def upgrade() -> None:
 def downgrade() -> None:
     op.execute(
         sa.text(
-            "DELETE FROM product_type WHERE code IN ('DUPLICATA_MERCANTIL', 'CHEQUE_PRE_DATADO', 'CONTRATO_USD');"
+            "DELETE FROM product_type"
+            " WHERE code IN ('DUPLICATA_MERCANTIL', 'CHEQUE_PRE_DATADO', 'CONTRATO_USD');"
         )
     )
     op.execute(
