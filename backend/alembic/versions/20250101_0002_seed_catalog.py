@@ -50,6 +50,4 @@ def downgrade() -> None:
             " WHERE code IN ('DUPLICATA_MERCANTIL', 'CHEQUE_PRE_DATADO', 'CONTRATO_USD');"
         )
     )
-    op.execute(
-        sa.text("DELETE FROM currency WHERE code IN ('BRL', 'USD', 'EUR');")
-    )
+    op.execute(sa.text("DELETE FROM currency WHERE code IN ('BRL', 'USD', 'EUR');"))
