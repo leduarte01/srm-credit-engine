@@ -55,6 +55,9 @@ export const TRANSLATIONS = {
     no_receivables: 'No receivables match the current filters.',
     loading_receivables: 'Loading receivables…',
     showing_x_of_y: 'Showing {shown} of {total} receivables.',
+    showing_range: 'Showing {from}–{to} of {total} receivables.',
+    pagination_prev: 'Previous',
+    pagination_next: 'Next',
     // Status badge
     status_pending: 'Pending',
     status_settled: 'Settled',
@@ -130,6 +133,9 @@ export const TRANSLATIONS = {
     no_receivables: 'Nenhum recebível encontra os filtros atuais.',
     loading_receivables: 'Carregando recebíveis…',
     showing_x_of_y: 'Exibindo {shown} de {total} recebíveis.',
+    showing_range: 'Exibindo {from}–{to} de {total} recebíveis.',
+    pagination_prev: 'Anterior',
+    pagination_next: 'Próxima',
     // Badge de status
     status_pending: 'Pendente',
     status_settled: 'Liquidado',
