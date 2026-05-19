@@ -13,11 +13,13 @@
 ## Sumário
 
 - [O que é](#o-que-é)
+- [Validação contra o case](#validação-contra-o-case)
 - [Stack e versões](#stack-e-versões)
 - [Início rápido (Docker)](#início-rápido-docker)
 - [Desenvolvimento local](#desenvolvimento-local)
 - [Estrutura do repositório](#estrutura-do-repositório)
 - [Endpoints principais](#endpoints-principais)
+- [Funcionalidades de produto](#funcionalidades-de-produto)
 - [Qualidade e CI](#qualidade-e-ci)
 - [Arquitetura](#arquitetura)
 - [Decisões registradas (ADRs)](#decisões-registradas-adrs)
@@ -42,6 +44,76 @@ Sistema web para um FIDC operar o ciclo completo de cessão de crédito:
 A regra de negócio é isolada em domínio puro (sem framework) seguindo
 **arquitetura hexagonal** — ver
 [ADR-002](docs/adr/ADR-002-hexagonal-architecture.md).
+
+## Validação contra o case
+
+O briefing original está em
+[README_case_dev_srm.md](README_case_dev_srm.md). Mapa requisito ↔
+implementação:
+
+### Backend (seção 3 do case)
+
+| #   | Requisito                                                                        | Onde foi atendido                                                                                                                                                                        |
+| --- | -------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **Currency Engine** — armazenar/prover taxas FX e endpoint de atualização        | `infrastructure/database_currency_converter.py`, router `/fx-rates`, `/api/v1/exchange-rates`; integração ao vivo via `LiveRateCurrencyConverter` (CDN fawazahmed0) com fallback DB→live |
+| 2   | **Strategy Pattern** para precificação por tipo de recebível                     | `domain/pricing/strategies/*` (Duplicata 1,5% a.m., Cheque 2,5% a.m., Contrato USD 1,2% a.m.); resolução em `PricingStrategyResolver`                                                    |
+| 2   | Fórmula `VP = VF / (1 + base + spread)^prazo` + conversão cambial cross-currency | `domain/services/pricing_service.py`                                                                                                                                                     |
+| 3   | Persistência relacional + ACID + sem race-condition                              | PostgreSQL 16 + SQLAlchemy 2.0 async + alembic; **optimistic locking** via coluna `version` em `Receivable`/`Settlement`                                                                 |
+| 4   | **API RESTful** com verbos/códigos corretos + OpenAPI                            | FastAPI `/api/v1` com Swagger interativo em `/docs` e ReDoc em `/redoc`                                                                                                                  |
+| 5   | **Extrato analítico** filtrado por período / cedente / moeda; SQL nativo         | `domain/analytics/*` + `infrastructure/analytics_repository.py` com SQL nativo (bypass do ORM) — router `/reports/*`                                                                     |
+| 6   | **Arquitetura em camadas** (apresentação / negócio / persistência)               | Hexagonal: `api/` (adaptador IN) → `domain/` (regras puras) → `infrastructure/` (adaptadores OUT); relatórios bypassam negócio diretamente para SQL nativo                               |
+
+### Frontend (seção 4)
+
+| #   | Requisito                                                       | Onde foi atendido                                                                                                                                                       |
+| --- | --------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **Painel do Operador** com simulação em tempo real              | `components/PricingSimulator.tsx` (POST `/pricing/simulate` debounced) + toggle de cotação ao vivo                                                                      |
+| 2   | **Grid de Transações** paginada server-side + filtros dinâmicos | `pages/DashboardPage.tsx` + `components/ReceivableFilters.tsx` + `components/ReceivableTable.tsx` (TanStack Table + Query); paginação `Prev / Next / Exibindo X–Y de Z` |
+| 3   | **Separação UI ↔ negócio/estado** + estado global               | TanStack Query (server state), Zustand (`store/uiStore.ts` para UI), componentes puros em `components/`, páginas compõem features                                       |
+
+### Requisitos não-funcionais (seção 5)
+
+| #   | Requisito                         | Onde foi atendido                                                                                                                            |
+| --- | --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Tratamento de exceções resiliente | `api/v1/errors.py` (handlers globais traduzindo `DomainError`, `ValueError`, `IntegrityError` em 4xx tipados) + `ApiClientError` no frontend |
+| 2   | Critérios de aceite               | [docs/acceptance-criteria.md](docs/acceptance-criteria.md) (usabilidade, segurança, desempenho, escalabilidade)                              |
+
+### Senioridade — entregáveis acumulados (seção 6)
+
+| Nível           | Item                                                 | Onde foi atendido                                                                                                                                                                    |
+| --------------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 🟢 Júnior       | Commits atômicos + branches por feature              | [docs/COMMITS.md](docs/COMMITS.md) + histórico em PRs #1–#28                                                                                                                         |
+| 🟢 Júnior       | Lógica de cálculo correta + ER + README "como rodar" | Testes property-based em `tests/unit/domain/pricing/`; [docs/ER.md](docs/ER.md); seção [Início rápido](#início-rápido-docker)                                                        |
+| 🟡 Pleno        | Conventional Commits + PRs descritivos               | [docs/pull-requests/](docs/pull-requests/)                                                                                                                                           |
+| 🟡 Pleno        | Docker + Docker Compose                              | `docker-compose.yml` + Dockerfiles multi-stage                                                                                                                                       |
+| 🟡 Pleno        | Exception handlers globais + validações de input     | `api/v1/errors.py` + Pydantic v2 strict                                                                                                                                              |
+| 🟡 Pleno        | Testes unitários da Strategy                         | `tests/unit/domain/pricing/test_strategies.py`                                                                                                                                       |
+| 🔴 Sênior       | Git hooks (pre-commit)                               | `.pre-commit-config.yaml`                                                                                                                                                            |
+| 🔴 Sênior       | SemVer tags                                          | Tag anotada `v1.0.0`                                                                                                                                                                 |
+| 🔴 Sênior       | Interactive rebase / histórico limpo                 | Squash em PRs de fix; merges `--no-ff` em `main`                                                                                                                                     |
+| 🔴 Sênior       | Diagramas C4 (1 e 2)                                 | [docs/architecture/c4-context.md](docs/architecture/c4-context.md) + [c4-containers.md](docs/architecture/c4-containers.md) + [c4-components.md](docs/architecture/c4-components.md) |
+| 🔴 Sênior       | Observabilidade (logs / métricas / tracing)          | structlog JSON + Prometheus em `/metrics` + OTel; ADR-005                                                                                                                            |
+| 🔴 Sênior       | CI/CD com testes e linter                            | `.github/workflows/{backend,frontend,docker}.yml`                                                                                                                                    |
+| 🔴 Sênior       | Resiliência (retry / circuit breaker)                | `resilience/{retries,circuit_breaker,resilient_converter}.py` + ADR-004                                                                                                              |
+| 🔴 Sênior       | Optimistic Locking                                   | Coluna `version` em `Receivable`/`Settlement` com check otimista em `UPDATE`                                                                                                         |
+| 🟣 Especialista | Estratégia de branching justificada                  | [ADR-001](docs/adr/ADR-001-branching-strategy.md) — GitHub Flow                                                                                                                      |
+| 🟣 Especialista | Simulação de crise (`revert` / `cherry-pick`)        | [docs/HOTFIX_PROTOCOL.md](docs/HOTFIX_PROTOCOL.md)                                                                                                                                   |
+| 🟣 Especialista | ADRs                                                 | [docs/adr/](docs/adr/) — 6 ADRs                                                                                                                                                      |
+| 🟣 Especialista | Design para alta escala (1M tx/min)                  | [docs/architecture/high-scale.md](docs/architecture/high-scale.md)                                                                                                                   |
+| 🟣 Especialista | Modelagem de eventos (EDA)                           | [docs/architecture/eda.md](docs/architecture/eda.md) — Transactional Outbox                                                                                                          |
+
+### Modelagem de dados (seção 7)
+
+| Item        | Onde foi atendido                                      |
+| ----------- | ------------------------------------------------------ |
+| Diagrama ER | [docs/ER.md](docs/ER.md)                               |
+| Scripts DDL | `backend/alembic/versions/*.py` (migrations canônicas) |
+
+### Documentação de IA (seção 2)
+
+| Item                                                     | Onde foi atendido          |
+| -------------------------------------------------------- | -------------------------- |
+| `AI_USAGE.md` com prompts, alucinações e análise crítica | [AI_USAGE.md](AI_USAGE.md) |
 
 ## Stack e versões
 
@@ -192,21 +264,48 @@ SRM/
 
 Base path: `/api/v1`. OpenAPI interativo em `/docs`.
 
-| Recurso           | Métodos                         | Descrição                                   |
-| ----------------- | ------------------------------- | ------------------------------------------- |
-| `/assignors`      | GET, POST, GET/{id}, PATCH/{id} | Cedentes (KYC + dados cadastrais)           |
-| `/product-types`  | GET                             | Catálogo de tipos de produto                |
-| `/receivables`    | GET, POST, GET/{id}, PATCH/{id} | Recebíveis                                  |
-| `/pricing`        | POST                            | Precifica recebível (simples/composto + FX) |
-| `/exchange-rates` | GET                             | Audit trail de cotações usadas              |
-| `/settlements`    | GET, POST                       | Liquidações                                 |
-| `/reports/*`      | GET                             | Sumarizações analíticas da carteira         |
-| `/health`         | GET                             | Liveness                                    |
-| `/health/ready`   | GET                             | Readiness (ping no DB)                      |
-| `/metrics`        | GET                             | Prometheus scrape                           |
+| Recurso             | Métodos                               | Descrição                                                      |
+| ------------------- | ------------------------------------- | -------------------------------------------------------------- |
+| `/assignors`        | GET, POST, GET/{id}, PATCH/{id}       | Cedentes (KYC + dados cadastrais)                              |
+| `/product-types`    | GET                                   | Catálogo de tipos de produto                                   |
+| `/receivables`      | GET, POST, GET/{id}, PATCH/{id}       | Recebíveis (POST em lote no frontend via CSV)                  |
+| `/pricing/simulate` | POST                                  | Precifica recebível (simples/composto + FX cadastrado ou live) |
+| `/fx-rates`         | GET, POST, GET/{base}/{quote}/history | Cotações de câmbio cadastradas + histórico                     |
+| `/settlements`      | GET, POST                             | Liquidações (audit trail de eventos imutável)                  |
+| `/reports/*`        | GET                                   | Sumarizações analíticas da carteira (SQL nativo)               |
+| `/health`           | GET                                   | Liveness                                                       |
+| `/health/ready`     | GET                                   | Readiness (ping no DB)                                         |
+| `/metrics`          | GET                                   | Prometheus scrape                                              |
 
 Valores monetários trafegam **sempre como string decimal** —
 ver [ADR-003](docs/adr/ADR-003-decimal-money.md).
+
+## Funcionalidades de produto
+
+Além dos requisitos do case, foram adicionadas melhorias pós-v1.0.0
+documentadas em [docs/PLAN.md](docs/PLAN.md):
+
+- **Painel multimoeda (BRL/USD)** — selects fixos no simulador e nos
+  filtros, evitando códigos arbitrários.
+- **Modal "Novo Recebível"** com form completo + botão **"Liquidar"**
+  inline na tabela de recebíveis.
+- **Upload em lote via CSV** — drag-and-drop com validação linha a
+  linha, relatório de erros e fallback de criação parcial. Exemplo
+  em [scripts/receivables_sample.csv](scripts/receivables_sample.csv).
+- **Cotação FX em tempo real** com toggle no `PricingSimulator`. Por
+  padrão usa a taxa cadastrada; quando ausente faz fallback automático
+  para a CDN [fawazahmed0/exchange-api](https://github.com/fawazahmed0/exchange-api)
+  (sem auth, sem rate-limit) com cache in-process de 60 s e mirror
+  Cloudflare Pages. A resposta indica `fx_rate_source: "database" | "live"`
+  e a UI mostra um badge colorido.
+- **Páginas de configuração** — Cedentes e Taxas de Câmbio (listar +
+  criar) com formulários acessíveis e estado gerenciado por TanStack
+  Query.
+- **i18n PT/EN** com toggle persistente (Zustand) — todo o painel,
+  modais e mensagens de erro têm chaves traduzidas em
+  `frontend/src/lib/i18n.ts`.
+- **Help modal contextual** explicando spreads, fórmula e fluxo de
+  liquidação.
 
 ---
 

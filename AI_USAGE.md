@@ -20,11 +20,11 @@ final fosse correto, seguro e defensável.
 
 ## Ferramentas utilizadas
 
-| Ferramenta             | Papel principal                                        |
-| ---------------------- | ------------------------------------------------------ |
-| **GitHub Copilot Chat** | Geração de código (Python, TypeScript, SQL), explicação de erros, refatorações guiadas, escrita de testes. |
-| **Modelos de linguagem (Claude / GPT-4 class)** | Brainstorming arquitetural, redação de ADRs e runbooks, revisão de PRs em modo "rubber duck". |
-| **Copilot inline completion** | Boilerplate (DTOs, dataclasses, schemas Pydantic).  |
+| Ferramenta                                      | Papel principal                                                                                            |
+| ----------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| **GitHub Copilot Chat**                         | Geração de código (Python, TypeScript, SQL), explicação de erros, refatorações guiadas, escrita de testes. |
+| **Modelos de linguagem (Claude / GPT-4 class)** | Brainstorming arquitetural, redação de ADRs e runbooks, revisão de PRs em modo "rubber duck".              |
+| **Copilot inline completion**                   | Boilerplate (DTOs, dataclasses, schemas Pydantic).                                                         |
 
 Não foram usados agentes autônomos que executam ações irreversíveis
 sem revisão.
@@ -105,24 +105,24 @@ Para cada bloco gerado por IA:
 
 ## Alucinações comuns observadas e mitigações
 
-| Alucinação                                            | Mitigação aplicada                                |
-| ----------------------------------------------------- | ------------------------------------------------- |
-| Pacotes inexistentes em sugestões de imports          | Verificação contra `pyproject.toml` / `package.json`; CI quebra. |
-| APIs Pydantic v1 misturadas com v2                    | `mypy strict` + revisão manual.                   |
-| `Decimal` operado com `float` ("isso compila")        | Convenção fixada em ADR-003; lint custom planejado. |
-| Datas naïve (sem timezone)                            | Tipos `datetime` sempre `tzinfo=UTC` em domínio.  |
-| Promessas de bibliotecas que "deveriam existir"       | Cross-check em PyPI / npm antes de adotar.        |
-| SQL com `LIMIT` em update sem `RETURNING`             | Revisão humana de toda DDL/DML em migration.      |
+| Alucinação                                      | Mitigação aplicada                                               |
+| ----------------------------------------------- | ---------------------------------------------------------------- |
+| Pacotes inexistentes em sugestões de imports    | Verificação contra `pyproject.toml` / `package.json`; CI quebra. |
+| APIs Pydantic v1 misturadas com v2              | `mypy strict` + revisão manual.                                  |
+| `Decimal` operado com `float` ("isso compila")  | Convenção fixada em ADR-003; lint custom planejado.              |
+| Datas naïve (sem timezone)                      | Tipos `datetime` sempre `tzinfo=UTC` em domínio.                 |
+| Promessas de bibliotecas que "deveriam existir" | Cross-check em PyPI / npm antes de adotar.                       |
+| SQL com `LIMIT` em update sem `RETURNING`       | Revisão humana de toda DDL/DML em migration.                     |
 
 ## Métricas de uso (auto-reportadas)
 
-| Categoria                          | Estimativa de assistência |
-| ---------------------------------- | ------------------------- |
-| Boilerplate (schemas, dataclasses) | Alta                      |
-| Testes parametrizados              | Alta                      |
-| Lógica de domínio (pricing core)   | Baixa (apoio incremental) |
+| Categoria                          | Estimativa de assistência         |
+| ---------------------------------- | --------------------------------- |
+| Boilerplate (schemas, dataclasses) | Alta                              |
+| Testes parametrizados              | Alta                              |
+| Lógica de domínio (pricing core)   | Baixa (apoio incremental)         |
 | Decisões arquiteturais             | Apoio textual após decisão humana |
-| Documentação narrativa             | Média (revisão pesada)    |
+| Documentação narrativa             | Média (revisão pesada)            |
 | Configuração de CI / Docker        | Alta na primeira versão; revisada |
 
 Estes números são impressões qualitativas, não medidas precisas — não
@@ -168,5 +168,22 @@ Quem quiser reexecutar este projeto com IA pode seguir:
 
 ---
 
-**Última revisão:** acompanha o merge da Etapa 14 (README final +
-AI_USAGE).
+**Última revisão:** acompanha o ciclo pós-v1.0.0 (melhorias M1–M8:
+config pages, FX live rate com fallback, upload em lote CSV, selects
+BRL/USD). A IA gerou a primeira versão de cada componente novo
+(`PricingSimulator` com toggle de cotação, `BatchUploadModal`,
+`AssignorsPage`, `ExchangeRatesPage`) e do adaptador
+`LiveRateCurrencyConverter`; cada PR passou pelos mesmos gates de
+CI/CD (ruff, mypy strict, pytest com cobertura, prettier, eslint,
+tsc, vitest, vite build). Alucinações relevantes detectadas no
+ciclo:
+
+- **API errada da AwesomeAPI** — modelo sugeriu endpoint sem
+  rate-limit; constatamos 429 em produção e migramos para
+  fawazahmed0/exchange-api (CDN jsDelivr).
+- **Exceções não tratadas no live converter** — a primeira versão
+  propagava `httpx.RequestError`, gerando 500. Mitigado em PRs
+  #25–#27 com captura ampla e tradução para
+  `ExchangeRateNotFoundError`.
+- **Tipo `dict` sem parâmetros** — `mypy --strict` apontou; corrigido
+  para `dict[str, Any]`.

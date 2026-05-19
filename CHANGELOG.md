@@ -8,7 +8,51 @@ e o projeto adere a [Semantic Versioning 2.0.0](https://semver.org/lang/pt-BR/).
 
 ## [Unreleased]
 
-_(nada ainda)_
+### Added
+
+- **Cotação FX em tempo real** (`LiveRateCurrencyConverter`) usando a
+  CDN [fawazahmed0/exchange-api](https://github.com/fawazahmed0/exchange-api)
+  (sem auth, sem rate-limit) com mirror Cloudflare Pages e cache
+  in-process de 60 s.
+- **Fallback automático DB→live** (`FallbackCurrencyConverter`):
+  primeiro tenta a taxa cadastrada; em `ExchangeRateNotFoundError`
+  cai para a cotação ao vivo, expondo `last_source` (`database` |
+  `live`).
+- **Campo `use_live_rate`** em `POST /pricing/simulate` para forçar
+  cotação ao vivo; resposta passou a incluir `fx_rate_source`.
+- **Toggle "Usar cotação em tempo real"** no `PricingSimulator` do
+  frontend, com badge colorido indicando a fonte da taxa.
+- **Modal "Novo Recebível"** com form completo + botão **"Liquidar"**
+  inline na tabela.
+- **Páginas de configuração**: Cedentes (`/assignors`) e Taxas de
+  Câmbio (`/fx-rates`).
+- **Upload em lote** de recebíveis via CSV
+  (`components/BatchUploadModal.tsx`) com drag-and-drop, validação
+  linha a linha e relatório de erros. CSV de exemplo em
+  [scripts/receivables_sample.csv](scripts/receivables_sample.csv) e
+  seeder standalone em [scripts/seed_receivables.py](scripts/seed_receivables.py).
+- **Selects fixos BRL/USD** no simulador e nos filtros (substituem
+  inputs livres).
+- **Controles Prev / Next + "Exibindo X–Y de Z"** na grid para
+  evidenciar a paginação server-side.
+- **Seção "Validação contra o case"** no README mapeando cada
+  requisito do briefing à sua implementação.
+
+### Changed
+
+- README atualizado com a tabela de endpoints corrigida
+  (`/pricing/simulate`, `/fx-rates/{base}/{quote}/history`) e seção
+  **Funcionalidades de produto**.
+- `PLAN.md` reflete M1–M8 implementadas com referências aos PRs
+  #21–#28.
+
+### Fixed
+
+- `LiveRateCurrencyConverter` agora captura **todas** as exceções
+  HTTP e retorna `ExchangeRateNotFoundError` em vez de propagar 500
+  (PRs #25–#27).
+- Tipos `mypy strict` em `_fetch_base_rates` (`dict[str, Any]`).
+- Migração da AwesomeAPI (rate-limited) para fawazahmed0/exchange-api.
 
 ---
 
@@ -23,6 +67,7 @@ README final e tag de release.
 ### Added
 
 #### Backend (Python 3.12 + FastAPI)
+
 - Esqueleto FastAPI com Pydantic v2, settings tipadas, health checks
   (`/health`, `/health/ready`) e tratamento centralizado de erros.
 - Domínio puro em arquitetura hexagonal (ver
@@ -55,6 +100,7 @@ README final e tag de release.
   testes de integração para repositórios.
 
 #### Frontend (React 19 + TypeScript + Vite + Tailwind v4)
+
 - SPA com TanStack Query 5 para fetch remoto, TanStack Table 8
   para grids paginadas e ordenáveis, Zustand 5 para estado global,
   axios com interceptors traduzindo erros para `ApiClientError`.
@@ -67,6 +113,7 @@ README final e tag de release.
   `vite build`.
 
 #### Orquestração e operação
+
 - `docker-compose.yml` com três serviços: PostgreSQL 16
   (healthcheck + volume named), backend (FastAPI/Uvicorn,
   `depends_on: service_healthy`) e frontend
@@ -79,6 +126,7 @@ README final e tag de release.
   100% via variáveis de ambiente.
 
 #### CI/CD
+
 - Três workflows GitHub Actions path-filtered:
   `backend.yml` (`ruff check`, `ruff format --check`, `mypy strict`,
   `pytest` com cobertura ≥ 80%),
@@ -90,6 +138,7 @@ README final e tag de release.
   no backend + prettier/eslint no frontend.
 
 #### Documentação
+
 - Seis ADRs (Architecture Decision Records) em
   [docs/adr/](docs/adr/) cobrindo estratégia de branching,
   arquitetura hexagonal, decimal-string, camadas de resiliência,
@@ -114,6 +163,7 @@ README final e tag de release.
   cobrindo usabilidade, segurança, desempenho e escalabilidade.
 
 #### Versionamento
+
 - Tag anotada `v1.0.0` em `main`.
 
 ### Quality gates atendidos
