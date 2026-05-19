@@ -88,7 +88,7 @@ class LiveRateCurrencyConverter:
                     response = await client.get(url)
                     response.raise_for_status()
                     return response.json()  # type: ignore[no-any-return]
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 last_exc = exc
 
         raise ExchangeRateNotFoundError(

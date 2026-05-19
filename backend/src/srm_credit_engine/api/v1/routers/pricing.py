@@ -96,10 +96,7 @@ async def simulate(
     PRICING_OPERATIONS.labels(product.code, "success").inc()
 
     # Determine which source provided the FX rate.
-    if priced.fx_rate_applied is None:
-        fx_source = None
-    else:
-        fx_source = fallback.last_source
+    fx_source = None if priced.fx_rate_applied is None else fallback.last_source
 
     return PricingSimulateResponse(
         product_code=product.code,
